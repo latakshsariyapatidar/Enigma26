@@ -5,11 +5,13 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "prod": "cross-env NODE_ENV=production nodemon src/index.js"
   },
   "author": "Krish Gupta",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "nodemon": "^3.1.14",
     "prettier": "^3.8.1"
   },
