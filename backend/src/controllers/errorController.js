@@ -1,6 +1,5 @@
 /* eslint-disable arrow-body-style */
-import ApiError from "../utils/apiError";
-import { ApiResponse } from "../utils/apiResponse";
+import {ApiError} from "../utils/apiError.js";
 
 console.log("NODE_ENV =", process.env.NODE_ENV);
 

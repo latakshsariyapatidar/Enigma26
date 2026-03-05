@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-
+import errorController from './controllers/errorController.js';
+import { ApiResponse } from './utils/apiResponse.js';
 const app = express();
 app.use(cors({
     origin: process.env.CORS_ORIGIN || '*',
@@ -13,4 +14,8 @@ app.use(express.urlencoded({
     extended: true,
     limit: '100kb'
 }));
+app.use('/healthcheck', (req, res) => {
+    res.status(200).json(new ApiResponse(200, null, 'OK'));
+});
+app.use(errorController);
 export default app;
