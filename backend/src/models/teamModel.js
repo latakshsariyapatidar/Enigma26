@@ -38,7 +38,7 @@ teamSchema.pre("save",async function (){
     this.password = await bcrypt.hash(this.password, 10) 
 });
 
-teamSchema.methods.correctPassword = async function (Password) {
+teamSchema.methods.isPasswordCorrect = async function (Password) {
   return await bcrypt.compare(Password, this.password);
 };
 
