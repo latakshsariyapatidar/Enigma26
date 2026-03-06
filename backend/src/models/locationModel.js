@@ -1,5 +1,38 @@
 import mongoose from "mongoose";
-import validator from "validator";
+
+const clueSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ["text", "image", "audio"],
+    required: true,
+  },
+
+  clue: {
+    type: String, // Text or cloudinary-url
+    required: true,
+  },
+
+  clueHint: String,
+});
+
+const puzzleSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ["text", "image", "audio"],
+    required: true,
+  },
+
+  puzzle: {
+    type: String, // Text or cloudinary-url
+    required: true,
+  },
+
+  slug: String,
+
+  puzzleHint: String,
+
+  answer: String,
+});
 
 const locationSchema = new mongoose.Schema({
   name: {
@@ -7,20 +40,11 @@ const locationSchema = new mongoose.Schema({
     required: [true, "Please provide a name!"],
     unique: true,
   },
-  clue: [
-    {
-      clue: String,
-      clueHint: String,
-    },
-  ],
-  puzzle: [
-    {
-      puzzle: String,
-      slug: String,
-      puzzleHint: String,
-      puzzleAnswer: String,
-    },
-  ],
+
+  clues: [clueSchema],
+
+  puzzles: [puzzleSchema],
+
   // ! Add QR -- PlaceHolder
 });
 

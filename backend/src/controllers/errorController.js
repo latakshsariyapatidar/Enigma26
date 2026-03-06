@@ -1,7 +1,5 @@
 /* eslint-disable arrow-body-style */
-import {ApiError} from "../utils/apiError.js";
-
-console.log("NODE_ENV =", process.env.NODE_ENV);
+import { ApiError } from "../utils/apiError.js";
 
 const handleCastErrorDB = (err) => {
   return new ApiError(400, `Invalid ${err.path} ${err.value}`);
