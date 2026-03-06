@@ -1,8 +1,9 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import errorController from './controllers/errorController.js';
 import { ApiResponse } from './utils/apiResponse.js';
-import { verifyJWT } from './middlewares/authMiddleware.js';
+
 const app = express();
 app.use(cors({
     origin: process.env.CORS_ORIGIN || '*',
@@ -15,9 +16,16 @@ app.use(express.urlencoded({
     extended: true,
     limit: '100kb'
 }));
-app.use(verifyJWT);
+app.use(cookieParser());
 app.use('/healthcheck', (req, res) => {
     res.status(200).json(new ApiResponse(200, null, 'OK'));
 });
+
+import userRouter from './routes/teamRoutes.js';
+app.use('/api/v1/users', userRouter);
+
+
+
+
 app.use(errorController);
 export default app;
