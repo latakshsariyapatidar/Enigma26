@@ -3,6 +3,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import TeamProgress from "../models/teamProgressModel.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import Location from "../models/locationModel.js";
+import { numberOfRounds } from "../utils/constant.js";
+import Team from "../models/teamModel.js";
 
 // // Participant Routes ---------------------------------------------
 export const getTeamProgress = asyncHandler(async (req, res, next) => {
@@ -14,11 +16,17 @@ export const getTeamProgress = asyncHandler(async (req, res, next) => {
     return next(new ApiError(404, "Team progress not found"));
   }
 
-  const location = await Location.findById(progress.currentLocation);
+  if (progress.currentRound > numberOfRounds) {
+    return res.status(200).json(new ApiResponse(200, null, "Event Completed"));
+  }
 
-  const totalScore =
-    progress.assignedLocations[progress.assignedLocations.length - 1]?.score ||
-    0;
+  const location = await Location.findById(progress.currentLocation);
+  if (!location) {
+    return next(new ApiError(404, "Location not found"));
+  }
+
+  const scoreIndex = Math.min(progress.currentRound - 1, numberOfRounds - 1);
+  const totalScore = progress.assignedLocations[scoreIndex]?.score || 0;
 
   return res.status(200).json(
     new ApiResponse(
@@ -97,129 +105,135 @@ export const getClueHint = asyncHandler(async (req, res, next) => {
     );
 });
 
-export const getPuzzle = asyncHandler(async (req, res, next) => {
-  const progress = await TeamProgress.findOne({
-    teamId: req.user._id,
-  });
+// export const getPuzzle = asyncHandler(async (req, res, next) => {
+//   const progress = await TeamProgress.findOne({
+//     teamId: req.user._id,
+//   });
 
-  if (!progress) {
-    return next(new ApiError(404, "Team progress not found"));
-  }
+//   if (!progress) {
+//     return next(new ApiError(404, "Team progress not found"));
+//   }
 
-  const location = await Location.findById(progress.currentLocation);
+//   const location = await Location.findById(progress.currentLocation);
 
-  if (!location) {
-    return next(new ApiError(404, "Location not found"));
-  }
+//   if (!location) {
+//     return next(new ApiError(404, "Location not found"));
+//   }
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        puzzle: location.puzzle.puzzle,
-        type: location.puzzle.type,
-      },
-      "Puzzle fetched successfully"
-    )
-  );
-});
+//   return res.status(200).json(
+//     new ApiResponse(
+//       200,
+//       {
+//         puzzle: location.puzzle.puzzle,
+//         type: location.puzzle.type,
+//       },
+//       "Puzzle fetched successfully"
+//     )
+//   );
+// });
 
-export const getPuzzleHint = asyncHandler(async (req, res, next) => {
-  const progress = await TeamProgress.findOne({
-    teamId: req.user._id,
-  });
+// export const getPuzzleHint = asyncHandler(async (req, res, next) => {
+//   const progress = await TeamProgress.findOne({
+//     teamId: req.user._id,
+//   });
 
-  if (!progress) {
-    return next(new ApiError(404, "Team progress not found"));
-  }
+//   if (!progress) {
+//     return next(new ApiError(404, "Team progress not found"));
+//   }
 
-  const location = await Location.findById(progress.currentLocation);
+//   const location = await Location.findById(progress.currentLocation);
 
-  if (!location) {
-    return next(new ApiError(404, "Location not found"));
-  }
+//   if (!location) {
+//     return next(new ApiError(404, "Location not found"));
+//   }
 
-  if (!location.puzzle.puzzleHint) {
-    return next(new ApiError(404, "Puzzle-hint not available"));
-  }
+//   if (!location.puzzle.puzzleHint) {
+//     return next(new ApiError(404, "Puzzle-hint not available"));
+//   }
 
-  const current = progress.assignedLocations[progress.currentRound - 1];
-  if (!current) {
-    return next(new ApiError(400, "Invalid round state"));
-  }
+//   const current = progress.assignedLocations[progress.currentRound - 1];
+//   if (!current) {
+//     return next(new ApiError(400, "Invalid round state"));
+//   }
 
-  if (!current.puzzlehintUsed) {
-    current.puzzlehintUsed = true;
-    current.score = (current.score ?? 0) - 5;
-    await progress.save();
-  }
+//   if (!current.puzzlehintUsed) {
+//     current.puzzlehintUsed = true;
+//     current.score = (current.score ?? 0) - 5;
+//     await progress.save();
+//   }
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { puzzleHint: location.puzzle.puzzleHint },
-        "Puzzle hint fetched successfully"
-      )
-    );
-});
+//   return res
+//     .status(200)
+//     .json(
+//       new ApiResponse(
+//         200,
+//         { puzzleHint: location.puzzle.puzzleHint },
+//         "Puzzle hint fetched successfully"
+//       )
+//     );
+// });
 
-// ! To edit - NEEDS MORE WORK -- Score updation, currentRound updation,
-// ! next location assignment, team progress updation after every submission etc.
-// ! -- Will be done after the basic flow is ready and tested
-export const submitAnswer = asyncHandler(async (req, res, next) => {
-  const { answer } = req.body;
+// // ! To edit - NEEDS MORE WORK -- Score updation, currentRound updation,
+// // ! next location assignment, team progress updation after every submission etc.
+// // ! -- Will be done after the basic flow is ready and tested
+// export const submitAnswer = asyncHandler(async (req, res, next) => {
+//   const { answer } = req.body;
 
-  if (!answer) {
-    return next(new ApiError(400, "Answer is required"));
-  }
+//   if (!answer) {
+//     return next(new ApiError(400, "Answer is required"));
+//   }
 
-  const progress = await TeamProgress.findOne({
-    teamId: req.user._id,
-  });
+//   const progress = await TeamProgress.findOne({
+//     teamId: req.user._id,
+//   });
 
-  if (!progress) {
-    return next(new ApiError(404, "Team progress not found"));
-  }
+//   if (!progress) {
+//     return next(new ApiError(404, "Team progress not found"));
+//   }
 
-  const location = await Location.findById(progress.currentLocation);
+//   const location = await Location.findById(progress.currentLocation);
 
-  if (!location) {
-    return next(new ApiError(404, "Location not found"));
-  }
+//   if (!location) {
+//     return next(new ApiError(404, "Location not found"));
+//   }
 
-  const current = progress.assignedLocations[progress.currentRound - 1];
+//   const current = progress.assignedLocations[progress.currentRound - 1];
 
-  if (!current) {
-    return next(new ApiError(400, "Invalid round state"));
-  }
+//   if (!current) {
+//     return next(new ApiError(400, "Invalid round state"));
+//   }
 
-  current.attempts = (current.attempts || 0) + 1;
+//   current.attempts = (current.attempts || 0) + 1;
 
-  if (answer.toLowerCase().trim() !== location.puzzle.answer.toLowerCase()) {
-    await progress.save();
+//   if (answer.toLowerCase().trim() !== location.puzzle.answer.toLowerCase()) {
+//     await progress.save();
 
-    return res
-      .status(400)
-      .json(
-        new ApiResponse(400, { attempts: current.attempts }, "Wrong answer")
-      );
-  }
+//     return res
+//       .status(400)
+//       .json(
+//         new ApiResponse(400, { attempts: current.attempts }, "Wrong answer")
+//       );
+//   }
 
-  // mark location completed
-  current.status = "completed";
-  current.completedAt = new Date();
+//   // mark location completed
+//   current.status = "completed";
+//   current.completedAt = new Date();
 
-  await progress.save();
+//   await progress.save();
 
-  return res.status(200).json(new ApiResponse(200, null, "Correct answer"));
-});
+//   return res.status(200).json(new ApiResponse(200, null, "Correct answer"));
+// });
 
 // // Admin-Routes ---------------------------------------------
 
 export const getTeamProgressAdmin = asyncHandler(async (req, res, next) => {
   const { teamId } = req.params;
+
+  const team = await Team.findById(teamId);
+
+  if (!team || team.role !== "participant") {
+    return next(new ApiError(404, "Participant team not found"));
+  }
 
   const progress = await TeamProgress.findOne({ teamId });
 
@@ -234,6 +248,10 @@ export const getTeamProgressAdmin = asyncHandler(async (req, res, next) => {
     const item = progress.assignedLocations[i];
 
     const location = await Location.findById(item.location).select("name");
+
+    if (!location) {
+      return next(new ApiError(404, "Location not found"));
+    }
 
     route.push({
       locationId: location._id,
@@ -253,9 +271,8 @@ export const getTeamProgressAdmin = asyncHandler(async (req, res, next) => {
     }
   }
 
-  const totalScore =
-    progress.assignedLocations[progress.assignedLocations.length - 1]?.score ||
-    0;
+  const scoreIndex = Math.min(progress.currentRound - 1, numberOfRounds - 1);
+  const totalScore = progress.assignedLocations[scoreIndex]?.score || 0;
 
   return res.status(200).json(
     new ApiResponse(
@@ -278,9 +295,15 @@ export const getTeamProgressAdmin = asyncHandler(async (req, res, next) => {
 // * AllTeamProgress sorted for leaderboard purposes
 
 export const getAllTeamProgressAdmin = asyncHandler(async (req, res, next) => {
-  const allProgress = await TeamProgress.find();
+  const participants = await Team.find({ role: "participant" }).select("_id");
 
-  if (!allProgress) {
+  const participantIds = participants.map((team) => team._id);
+
+  const allProgress = await TeamProgress.find({
+    teamId: { $in: participantIds },
+  });
+
+  if (allProgress.length === 0) {
     return next(new ApiError(404, "No team progress found"));
   }
 
@@ -290,8 +313,8 @@ export const getAllTeamProgressAdmin = asyncHandler(async (req, res, next) => {
   let finishedTeams = 0;
 
   for (const team of allProgress) {
-    const totalScore =
-      team.assignedLocations[team.assignedLocations.length - 1]?.score || 0;
+    const scoreIndex = Math.min(team.currentRound - 1, numberOfRounds - 1);
+    const totalScore = team.assignedLocations[scoreIndex]?.score || 0;
 
     const totalHints = team.assignedLocations.reduce(
       (sum, loc) =>
@@ -326,14 +349,14 @@ export const getAllTeamProgressAdmin = asyncHandler(async (req, res, next) => {
 
   // sorting rule: rounds ↓ → score ↓ → time ↑
   leaderboard.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+
+    if (a.time !== b.time) return a.time - b.time;
+
     const roundA = parseInt(a.round.split("/")[0]);
     const roundB = parseInt(b.round.split("/")[0]);
 
-    if (roundB !== roundA) return roundB - roundA;
-
-    if (b.score !== a.score) return b.score - a.score;
-
-    return a.time - b.time;
+    return roundB - roundA;
   });
 
   return res.status(200).json(
