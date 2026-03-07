@@ -18,14 +18,14 @@ app.use(
 
 app.use(
   express.json({
-    limit: "100kb",
+    limit: "10mb",
   })
 );
 
 app.use(
   express.urlencoded({
     extended: true,
-    limit: "100kb",
+    limit: "10mb",
   })
 );
 app.use(cookieParser());

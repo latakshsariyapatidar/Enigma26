@@ -2,42 +2,50 @@ import Location from "../models/locationModel.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 /*
 CREATE LOCATION (with clue & puzzle)
-  Body expects:
-    name        – required
-    clueText, clueImage, clueAudio  – at least one required
-    clueHint    – optional
-    puzzleText, puzzleImage, puzzleAudio – at least one required
-    puzzleHint  – optional
-    answer      – required
+  Body (form-data):
+    name        – required (text)
+    clueText    – optional (text)
+    clueHint    – optional (text)
+    puzzleText  – optional (text)
+    puzzleHint  – optional (text)
+    answer      – required (text)
+  Files:
+    clueImage   – optional (file)
+    clueAudio   – optional (file)
+    puzzleImage – optional (file)
+    puzzleAudio – optional (file)
+  At least one of clueText/clueImage/clueAudio is required.
+  At least one of puzzleText/puzzleImage/puzzleAudio is required.
 */
 const createLocation = asyncHandler(async (req, res, next) => {
-  const {
-    name,
-    clueText,
-    clueImage,
-    clueAudio,
-    clueHint,
-    puzzleText,
-    puzzleImage,
-    puzzleAudio,
-    puzzleHint,
-    answer,
-  } = req.body;
+  const { name, clueText, clueHint, puzzleText, puzzleHint, answer } = req.body;
 
   if (!name) {
     return next(new ApiError(400, "Location name is required"));
   }
 
+  // Upload files to Cloudinary if provided
+  const clueImageFile = req.files?.clueImage?.[0]?.path;
+  const clueAudioFile = req.files?.clueAudio?.[0]?.path;
+  const puzzleImageFile = req.files?.puzzleImage?.[0]?.path;
+  const puzzleAudioFile = req.files?.puzzleAudio?.[0]?.path;
+
+  const clueImageUrl = clueImageFile ? (await uploadOnCloudinary(clueImageFile))?.url : undefined;
+  const clueAudioUrl = clueAudioFile ? (await uploadOnCloudinary(clueAudioFile))?.url : undefined;
+  const puzzleImageUrl = puzzleImageFile ? (await uploadOnCloudinary(puzzleImageFile))?.url : undefined;
+  const puzzleAudioUrl = puzzleAudioFile ? (await uploadOnCloudinary(puzzleAudioFile))?.url : undefined;
+
   // At least one clue content field is required
-  if (!clueText && !clueImage && !clueAudio) {
+  if (!clueText && !clueImageUrl && !clueAudioUrl) {
     return next(new ApiError(400, "At least one of clueText, clueImage, or clueAudio is required"));
   }
 
   // At least one puzzle content field is required
-  if (!puzzleText && !puzzleImage && !puzzleAudio) {
+  if (!puzzleText && !puzzleImageUrl && !puzzleAudioUrl) {
     return next(new ApiError(400, "At least one of puzzleText, puzzleImage, or puzzleAudio is required"));
   }
 
@@ -49,14 +57,14 @@ const createLocation = asyncHandler(async (req, res, next) => {
     name,
     clue: {
       text: clueText || undefined,
-      image: clueImage || undefined,
-      audio: clueAudio || undefined,
+      image: clueImageUrl || undefined,
+      audio: clueAudioUrl || undefined,
       clueHint: clueHint || undefined,
     },
     puzzle: {
       text: puzzleText || undefined,
-      image: puzzleImage || undefined,
-      audio: puzzleAudio || undefined,
+      image: puzzleImageUrl || undefined,
+      audio: puzzleAudioUrl || undefined,
       puzzleHint: puzzleHint || undefined,
       answer,
     },
