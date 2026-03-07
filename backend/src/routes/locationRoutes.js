@@ -4,7 +4,6 @@ import {
   createLocation,
   getAllLocations,
   createClueAndPuzzle,
-  updateClueAndPuzzle,
   deleteLocation,
 } from "../controllers/locationController.js";
 
@@ -16,7 +15,7 @@ router.get("/get-locations", getAllLocations);
 
 router.post("/add-clue-puzzle/:locationId", createClueAndPuzzle);
 
-router.put("/update-location/:locationId", updateClueAndPuzzle);
+// router.put("/update-location/:locationId", updateClueAndPuzzle);
 
 router.delete("/delete-location/:locationId", deleteLocation);
 

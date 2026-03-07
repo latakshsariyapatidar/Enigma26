@@ -1,205 +1,155 @@
 import Location from "../models/locationModel.js";
+import { ApiError } from "../utils/apiError.js";
+import { ApiResponse } from "../utils/apiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 /*
 CREATE LOCATION
-Admin creates a new location
 */
-export const createLocation = async (req, res) => {
-  try {
-    const { name } = req.body;
+const createLocation = asyncHandler(async (req, res, next) => {
+  const { name } = req.body;
 
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: "Location name is required",
-      });
-    }
-
-    const existingLocation = await Location.findOne({ name });
-
-    if (existingLocation) {
-      return res.status(400).json({
-        success: false,
-        message: "Location already exists",
-      });
-    }
-
-    const location = await Location.create({
-      name,
-      clues: [],
-      puzzles: [],
-    });
-
-    res.status(201).json({
-      success: true,
-      location,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+  if (!name) {
+    return next(new ApiError(400, "Location name is required"));
   }
-};
+
+  const existingLocation = await Location.findOne({ name });
+
+  if (existingLocation) {
+    return next(new ApiError(400, "Location already exists"));
+  }
+
+  const location = await Location.create({
+    name,
+    clues: [],
+    puzzles: [],
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, location, "Location created successfully"));
+});
 
 /*
 GET ALL LOCATIONS
-Used by admin dashboard
 */
-export const getAllLocations = async (req, res) => {
-  try {
-    const locations = await Location.find();
+const getAllLocations = asyncHandler(async (req, res) => {
+  const locations = await Location.find();
 
-    res.status(200).json({
-      success: true,
-      count: locations.length,
-      locations,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+  return res
+    .status(200)
+    .json(new ApiResponse(200, locations, "Locations fetched successfully"));
+});
 
 /*
 ADD CLUE AND PUZZLE
 Supports text / image / audio
-If image/audio → multer provides req.file.path
 */
-export const createClueAndPuzzle = async (req, res) => {
-  try {
-    const { locationId } = req.params;
+const createClueAndPuzzle = asyncHandler(async (req, res, next) => {
+  const { locationId } = req.params;
 
-    const {
-      clueType,
-      clue,
+  const {
+    clueType,
+    clue,
+    clueHint,
+    puzzleType,
+    puzzle,
+    puzzleHint,
+    answer,
+    slug,
+  } = req.body;
+
+  const location = await Location.findById(locationId);
+
+  if (!location) {
+    return next(new ApiError(404, "Location not found"));
+  }
+
+  let clueContent = clue;
+  if (clueType !== "text" && req.file) {
+    clueContent = req.file.path;
+  }
+
+  let puzzleContent = puzzle;
+  if (puzzleType !== "text" && req.file) {
+    puzzleContent = req.file.path;
+  }
+
+  if (clueType) {
+    location.clues.push({
+      type: clueType,
+      clue: clueContent,
       clueHint,
-      puzzleType,
-      puzzle,
+    });
+  }
+
+  if (puzzleType) {
+    location.puzzles.push({
+      type: puzzleType,
+      puzzle: puzzleContent,
       puzzleHint,
       answer,
       slug,
-    } = req.body;
-
-    const location = await Location.findById(locationId);
-
-    if (!location) {
-      return res.status(404).json({
-        success: false,
-        message: "Location not found",
-      });
-    }
-
-    // Determine clue content
-    let clueContent = clue;
-    if (clueType !== "text" && req.file) {
-      clueContent = req.file.path;
-    }
-
-    // Determine puzzle content
-    let puzzleContent = puzzle;
-    if (puzzleType !== "text" && req.file) {
-      puzzleContent = req.file.path;
-    }
-
-    if (clueType) {
-      location.clues.push({
-        type: clueType,
-        clue: clueContent,
-        clueHint,
-      });
-    }
-
-    if (puzzleType) {
-      location.puzzles.push({
-        type: puzzleType,
-        puzzle: puzzleContent,
-        puzzleHint,
-        answer,
-        slug,
-      });
-    }
-
-    await location.save();
-
-    res.status(200).json({
-      success: true,
-      location,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
     });
   }
-};
+
+  await location.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, location, "Clue and puzzle added successfully"));
+});
 
 /*
 UPDATE CLUES OR PUZZLES
 */
-export const updateClueAndPuzzle = async (req, res) => {
-  try {
-    const { locationId } = req.params;
+// const updateClueAndPuzzle = asyncHandler(async (req, res, next) => {
+//   const { locationId } = req.params;
 
-    const location = await Location.findById(locationId);
+//   const location = await Location.findById(locationId);
 
-    if (!location) {
-      return res.status(404).json({
-        success: false,
-        message: "Location not found",
-      });
-    }
+//   if (!location) {
+//     return next(new ApiError(404, "Location not found"));
+//   }
 
-    if (req.body.clues) {
-      location.clues = req.body.clues;
-    }
+//   if (req.body.clues) {
+//     location.clues = req.body.clues;
+//   }
 
-    if (req.body.puzzles) {
-      location.puzzles = req.body.puzzles;
-    }
+//   if (req.body.puzzles) {
+//     location.puzzles = req.body.puzzles;
+//   }
 
-    await location.save();
+//   await location.save();
 
-    res.status(200).json({
-      success: true,
-      location,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, location, "Location updated successfully"));
+// });
 
 /*
 DELETE LOCATION
 */
-export const deleteLocation = async (req, res) => {
-  try {
-    const { locationId } = req.params;
+const deleteLocation = asyncHandler(async (req, res, next) => {
+  const { locationId } = req.params;
 
-    const location = await Location.findById(locationId);
+  const location = await Location.findById(locationId);
 
-    if (!location) {
-      return res.status(404).json({
-        success: false,
-        message: "Location not found",
-      });
-    }
-
-    await Location.findByIdAndDelete(locationId);
-
-    res.status(200).json({
-      success: true,
-      message: "Location deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+  if (!location) {
+    return next(new ApiError(404, "Location not found"));
   }
+
+  await Location.findByIdAndDelete(locationId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Location deleted successfully"));
+});
+
+export {
+  createLocation,
+  getAllLocations,
+  createClueAndPuzzle,
+  updateClueAndPuzzle,
+  deleteLocation,
 };
