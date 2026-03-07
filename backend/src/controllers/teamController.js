@@ -15,10 +15,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 
     return { accessToken, refreshToken };
   } catch (error) {
-    return next(new ApiError(
-      500,
-      "something went wrong generating tokens in user controller"
-    )) ;
+    throw new ApiError(500,"something went wrong generating tokens in user controller");
   }
 };
 
@@ -138,7 +135,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "current user fetched successfully"))
 }); 
 
-const refreshAccessToken = asyncHandler(async (req, res) => {
+const refreshAccessToken = asyncHandler(async (req, res,next) => {
   const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken
   if (!incomingRefreshToken) return next(new ApiError(401, "unauthorized request"))
 

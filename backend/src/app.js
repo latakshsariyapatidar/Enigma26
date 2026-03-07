@@ -6,7 +6,7 @@ import locationRoutes from "./routes/locationRoutes.js";
 import teamProgressRoutes from "./routes/teamProgressRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import { ApiResponse } from "./utils/apiResponse.js";
-
+import qrRouter from "./routes/qrCodeRoutes.js";
 const app = express();
 
 app.use(
@@ -40,6 +40,6 @@ app.use("/api/v1/teamProgress", teamProgressRoutes);
 
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/location", locationRoutes);
-
+app.use("/api/v1/qrCode",qrRouter)
 app.use(errorController);
 export default app;

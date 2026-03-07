@@ -1,13 +1,16 @@
 import mongoose from "mongoose";
 import validator from "validator";
-
+import { numberOfRounds } from "../constant.js";
 const teamProgressSchema = new mongoose.Schema({
   teamId: {
     type: mongoose.Schema.ObjectId,
     ref: "Team", // * For populate() function -- we'll use later on if required or can be ignored
     required: [true],
   },
-  currentRound: Number,
+  currentRound: {
+    type:Number,
+    default:1
+  },
   currentLocation: {
     type: mongoose.Schema.ObjectId,
     ref: "Location", // * For populate() function -- we'll use later on if required or can be ignored
@@ -26,10 +29,23 @@ const teamProgressSchema = new mongoose.Schema({
         enum: ["pending", "completed"],
         default: "pending",
       },
-      clueHintUsed: Boolean,
-      puzzlehintUsed: Boolean,
+      clueHintUsed:{
+        type:Boolean,
+        default:false
+      },
+      puzzlehintUsed:{
+        type:Boolean,
+        default:false
+      },
       completedAt: Date,
-      score: Number, // * score after every location
+      score:{
+        type:Number,
+        default:0
+      }, // * score after every location
+      qrcodeseen:{
+        type:Boolean,
+        default:false
+      },
       attempts: {
         type: Number,
         default: 0,

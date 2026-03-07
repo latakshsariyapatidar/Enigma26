@@ -8,7 +8,7 @@ userRouter.route("/login").post(loginUser);
 userRouter.route("/logout").post(verifyJWT, logoutUser);
 userRouter.route("/change-password").post(verifyJWT, changePassword);
 userRouter.route("/current").get(verifyJWT, getCurrentUser);
-userRouter.route("/refresh-token").post(verifyJWT,refreshAccessToken);
+userRouter.route("/refresh-token").post(refreshAccessToken);
 userRouter.route("/delete").delete(verifyJWT, deleteUser);
 
 
