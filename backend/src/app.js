@@ -6,6 +6,7 @@ import locationRoutes from "./routes/locationRoutes.js";
 import { ApiResponse } from './utils/apiResponse.js';
 
 const app = express();
+
 app.use(cors({
     origin: process.env.CORS_ORIGIN || '*',
     credentials: true

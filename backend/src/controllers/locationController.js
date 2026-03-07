@@ -4,51 +4,11 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 /*
-CREATE LOCATION
+CREATE LOCATION (with optional clue & puzzle)
 */
 const createLocation = asyncHandler(async (req, res, next) => {
-  const { name } = req.body;
-
-  if (!name) {
-    return next(new ApiError(400, "Location name is required"));
-  }
-
-  const existingLocation = await Location.findOne({ name });
-
-  if (existingLocation) {
-    return next(new ApiError(400, "Location already exists"));
-  }
-
-  const location = await Location.create({
-    name,
-    clues: [],
-    puzzles: [],
-  });
-
-  return res
-    .status(201)
-    .json(new ApiResponse(201, location, "Location created successfully"));
-});
-
-/*
-GET ALL LOCATIONS
-*/
-const getAllLocations = asyncHandler(async (req, res) => {
-  const locations = await Location.find();
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, locations, "Locations fetched successfully"));
-});
-
-/*
-ADD CLUE AND PUZZLE
-Supports text / image / audio
-*/
-const createClueAndPuzzle = asyncHandler(async (req, res, next) => {
-  const { locationId } = req.params;
-
   const {
+    name,
     clueType,
     clue,
     clueHint,
@@ -56,8 +16,75 @@ const createClueAndPuzzle = asyncHandler(async (req, res, next) => {
     puzzle,
     puzzleHint,
     answer,
-    slug,
+    slug
   } = req.body;
+
+  if (!name) {
+    return next(new ApiError(400, "Location name is required"));
+  }
+
+  const location = new Location({
+    name,
+    clues: [],
+    puzzles: []
+  });
+
+  if (clueType) {
+    let clueContent = clue;
+
+    if (clueType !== "text" && req.file) {
+      clueContent = req.file.path;
+    }
+
+    location.clues.push({
+      type: clueType,
+      clue: clueContent,
+      clueHint
+    });
+  }
+
+  if (puzzleType) {
+    let puzzleContent = puzzle;
+
+    if (puzzleType !== "text" && req.file) {
+      puzzleContent = req.file.path;
+    }
+
+    location.puzzles.push({
+      type: puzzleType,
+      puzzle: puzzleContent,
+      puzzleHint,
+      answer,
+      slug
+    });
+  }
+
+  await location.save();
+
+  return res.status(201).json(
+    new ApiResponse(201, location, "Location created successfully")
+  );
+});
+
+/*
+GET ALL LOCATIONS
+*/
+const getAllLocations = asyncHandler(async (req, res) => {
+
+  const locations = await Location.find();
+
+  return res.status(200).json(
+    new ApiResponse(200, locations, "Locations fetched successfully")
+  );
+
+});
+
+/*
+GET LOCATION BY ID
+*/
+const getLocationById = asyncHandler(async (req, res, next) => {
+
+  const { locationId } = req.params;
 
   const location = await Location.findById(locationId);
 
@@ -65,39 +92,10 @@ const createClueAndPuzzle = asyncHandler(async (req, res, next) => {
     return next(new ApiError(404, "Location not found"));
   }
 
-  let clueContent = clue;
-  if (clueType !== "text" && req.file) {
-    clueContent = req.file.path;
-  }
+  return res.status(200).json(
+    new ApiResponse(200, location, "Location fetched successfully")
+  );
 
-  let puzzleContent = puzzle;
-  if (puzzleType !== "text" && req.file) {
-    puzzleContent = req.file.path;
-  }
-
-  if (clueType) {
-    location.clues.push({
-      type: clueType,
-      clue: clueContent,
-      clueHint,
-    });
-  }
-
-  if (puzzleType) {
-    location.puzzles.push({
-      type: puzzleType,
-      puzzle: puzzleContent,
-      puzzleHint,
-      answer,
-      slug,
-    });
-  }
-
-  await location.save();
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, location, "Clue and puzzle added successfully"));
 });
 
 /*
@@ -131,6 +129,7 @@ UPDATE CLUES OR PUZZLES
 DELETE LOCATION
 */
 const deleteLocation = asyncHandler(async (req, res, next) => {
+
   const { locationId } = req.params;
 
   const location = await Location.findById(locationId);
@@ -141,15 +140,15 @@ const deleteLocation = asyncHandler(async (req, res, next) => {
 
   await Location.findByIdAndDelete(locationId);
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Location deleted successfully"));
+  return res.status(200).json(
+    new ApiResponse(200, {}, "Location deleted successfully")
+  );
+
 });
 
 export {
   createLocation,
   getAllLocations,
-  createClueAndPuzzle,
-  updateClueAndPuzzle,
-  deleteLocation,
+  getLocationById,
+  deleteLocation
 };

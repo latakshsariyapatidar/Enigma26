@@ -3,7 +3,7 @@ import express from "express";
 import {
   createLocation,
   getAllLocations,
-  createClueAndPuzzle,
+  getLocationById,
   deleteLocation,
 } from "../controllers/locationController.js";
 
@@ -13,7 +13,7 @@ router.post("/create-location", createLocation);
 
 router.get("/get-locations", getAllLocations);
 
-router.post("/add-clue-puzzle/:locationId", createClueAndPuzzle);
+router.get("/get-location/:locationId", getLocationById);
 
 // router.put("/update-location/:locationId", updateClueAndPuzzle);
 
