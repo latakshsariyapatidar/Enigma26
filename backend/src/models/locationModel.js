@@ -1,39 +1,5 @@
 import mongoose from "mongoose";
 
-const clueSchema = new mongoose.Schema({
-  type: {
-    type: String,
-    enum: ["text", "image", "audio"],
-    required: true,
-  },
-
-  clue: {
-    type: String, // Text or cloudinary-url
-    required: true,
-  },
-
-  clueHint: String,
-});
-
-const puzzleSchema = new mongoose.Schema({
-  type: {
-    type: String,
-    enum: ["text", "image", "audio"],
-    required: true,
-  },
-
-  puzzle: {
-    type: String, // Text or cloudinary-url
-    required: true,
-  },
-
-  slug: String,
-
-  puzzleHint: String,
-
-  answer: String,
-});
-
 const locationSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -41,9 +7,20 @@ const locationSchema = new mongoose.Schema({
     unique: true,
   },
 
-  clues: [clueSchema],
+  clue: {
+    text: String,
+    image: String, // cloudinary URL if necessary
+    audio: String, // cloudinary URL if necessary
+    clueHint: String,
+  },
 
-  puzzles: [puzzleSchema],
+  puzzle: {
+    text: String,
+    image: String,
+    audio: String,
+    puzzleHint: String,
+    answer: String,
+  },
 
   // ! Add QR -- PlaceHolder
 });

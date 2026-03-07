@@ -13,7 +13,6 @@ const teamProgressSchema = new mongoose.Schema({
     ref: "Location", // * For populate() function -- we'll use later on if required or can be ignored
     required: [true],
   },
-  finalScore: Number,
   CompletedIn: Date,
   assignedLocations: [
     {
@@ -25,10 +24,16 @@ const teamProgressSchema = new mongoose.Schema({
       status: {
         type: String,
         enum: ["pending", "completed"],
+        default: "pending",
       },
-      hintUsed: Boolean,
+      clueHintUsed: Boolean,
+      puzzlehintUsed: Boolean,
       completedAt: Date,
       score: Number, // * score after every location
+      attempts: {
+        type: Number,
+        default: 0,
+      },
     },
   ],
 });
