@@ -9,61 +9,47 @@ CREATE LOCATION (with optional clue & puzzle)
 const createLocation = asyncHandler(async (req, res, next) => {
   const {
     name,
-    clueType,
-    clue,
+    clueText,
     clueHint,
-    puzzleType,
-    puzzle,
+    puzzleText,
     puzzleHint,
-    answer,
-    slug
+    answer
   } = req.body;
 
   if (!name) {
     return next(new ApiError(400, "Location name is required"));
   }
 
-  const location = new Location({
+  // ensure at least one clue exists
+  if (!clueText) {
+    return next(new ApiError(400, "At least one clue (text/image/audio) is required"));
+  }
+
+  // ensure puzzle text + answer exist
+  if (!puzzleText || !answer) {
+    return next(new ApiError(400, "Puzzle text and answer are required"));
+  }
+
+  const location = await Location.create({
     name,
-    clues: [],
-    puzzles: []
+    clue: {
+      text: clueText || null,
+      image: null,
+      audio: null,
+      clueHint: clueHint || null,
+    },
+    puzzle: {
+      text: puzzleText || null,
+      image: null,
+      audio: null,
+      puzzleHint: puzzleHint || null,
+      answer: answer || null,
+    },
   });
 
-  if (clueType) {
-    let clueContent = clue;
-
-    if (clueType !== "text" && req.file) {
-      clueContent = req.file.path;
-    }
-
-    location.clues.push({
-      type: clueType,
-      clue: clueContent,
-      clueHint
-    });
-  }
-
-  if (puzzleType) {
-    let puzzleContent = puzzle;
-
-    if (puzzleType !== "text" && req.file) {
-      puzzleContent = req.file.path;
-    }
-
-    location.puzzles.push({
-      type: puzzleType,
-      puzzle: puzzleContent,
-      puzzleHint,
-      answer,
-      slug
-    });
-  }
-
-  await location.save();
-
-  return res.status(201).json(
-    new ApiResponse(201, location, "Location created successfully")
-  );
+  return res
+    .status(201)
+    .json(new ApiResponse(201, location, "Location created successfully"));
 });
 
 /*
