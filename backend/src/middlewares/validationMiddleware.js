@@ -1,4 +1,5 @@
-import { ApiError } from "../utils/apiError";
+import { ApiError } from "../utils/apiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const isAdmin = asyncHandler(async (req, res, next) => {
     try {

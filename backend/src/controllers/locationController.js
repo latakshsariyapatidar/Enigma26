@@ -4,60 +4,63 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 /*
-CREATE LOCATION (with optional clue & puzzle)
+CREATE LOCATION (with clue & puzzle)
+  Body expects:
+    name        – required
+    clueText, clueImage, clueAudio  – at least one required
+    clueHint    – optional
+    puzzleText, puzzleImage, puzzleAudio – at least one required
+    puzzleHint  – optional
+    answer      – required
 */
 const createLocation = asyncHandler(async (req, res, next) => {
   const {
     name,
-    clueType,
-    clue,
+    clueText,
+    clueImage,
+    clueAudio,
     clueHint,
-    puzzleType,
-    puzzle,
+    puzzleText,
+    puzzleImage,
+    puzzleAudio,
     puzzleHint,
     answer,
-    slug
   } = req.body;
 
   if (!name) {
     return next(new ApiError(400, "Location name is required"));
   }
 
+  // At least one clue content field is required
+  if (!clueText && !clueImage && !clueAudio) {
+    return next(new ApiError(400, "At least one of clueText, clueImage, or clueAudio is required"));
+  }
+
+  // At least one puzzle content field is required
+  if (!puzzleText && !puzzleImage && !puzzleAudio) {
+    return next(new ApiError(400, "At least one of puzzleText, puzzleImage, or puzzleAudio is required"));
+  }
+
+  if (!answer) {
+    return next(new ApiError(400, "Puzzle answer is required"));
+  }
+
   const location = new Location({
     name,
-    clues: [],
-    puzzles: []
-  });
-
-  if (clueType) {
-    let clueContent = clue;
-
-    if (clueType !== "text" && req.file) {
-      clueContent = req.file.path;
-    }
-
-    location.clues.push({
-      type: clueType,
-      clue: clueContent,
-      clueHint
-    });
-  }
-
-  if (puzzleType) {
-    let puzzleContent = puzzle;
-
-    if (puzzleType !== "text" && req.file) {
-      puzzleContent = req.file.path;
-    }
-
-    location.puzzles.push({
-      type: puzzleType,
-      puzzle: puzzleContent,
-      puzzleHint,
+    clue: {
+      text: clueText || undefined,
+      image: clueImage || undefined,
+      audio: clueAudio || undefined,
+      clueHint: clueHint || undefined,
+    },
+    puzzle: {
+      text: puzzleText || undefined,
+      image: puzzleImage || undefined,
+      audio: puzzleAudio || undefined,
+      puzzleHint: puzzleHint || undefined,
       answer,
-      slug
-    });
-  }
+    },
+  });
 
   await location.save();
 
