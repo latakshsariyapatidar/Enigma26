@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import errorController from './controllers/errorController.js';
+import locationRoutes from "./routes/locationRoutes.js";
 import { ApiResponse } from './utils/apiResponse.js';
 
 const app = express();
@@ -25,7 +26,7 @@ import userRouter from './routes/teamRoutes.js';
 app.use('/api/v1/users', userRouter);
 
 
-
+app.use("/api/v1/location", locationRoutes);
 
 app.use(errorController);
 export default app;
