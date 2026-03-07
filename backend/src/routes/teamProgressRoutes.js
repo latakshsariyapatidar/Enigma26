@@ -4,10 +4,11 @@ import {
   getClueHint,
 } from "../controllers/teamProgressController.js";
 import { verifyJWT } from "../middlewares/authMiddleware.js";
+import { checkEventActive } from "../middlewares/eventMiddleware.js";
 
 const router = express.Router();
 
-router.get("/progress", verifyJWT, getTeamProgress);
-router.get("/clueHint", verifyJWT, getClueHint);
+router.get("/progress", verifyJWT, checkEventActive, getTeamProgress);
+router.get("/clueHint", verifyJWT, checkEventActive, getClueHint);
 
 export default router;
