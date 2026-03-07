@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import TeamProgress from "../models/teamProgressModel.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import Location from "../models/locationModel.js";
-import { numberOfRounds } from "../utils/constant.js";
+import { numberOfRounds } from "../constant.js";
 import Team from "../models/teamModel.js";
 
 // // Participant Routes ---------------------------------------------

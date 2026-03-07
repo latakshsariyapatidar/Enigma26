@@ -23,8 +23,10 @@ const checkQrLocation = asyncHandler(async (req, res, next) => {
         if(teamProgress.currentRound==numberOfRounds){
             teamProgress.assignedLocations[teamProgress.currentRound-1].score+=10;
             teamProgress.assignedLocations[teamProgress.currentRound-1].completedAt=new Date();
-            teamProgress.CompletedIn=new Date();
             teamProgress.assignedLocations[teamProgress.currentRound-1].status="completed";
+            teamProgress.currentRound+=1;
+            teamProgress.currentLocation=null;
+            teamProgress.CompletedIn=new Date();
         }
         await teamProgress.save();
     }
@@ -44,7 +46,7 @@ const checkPuzzleAnswer = asyncHandler(async (req, res, next) => {
     const {locId} = req.params;
     const {answer} = req.body;
     if(!answer){
-        return next(new ApiError())
+        return next(new ApiError(400,"answer is required"))
     }
     const teamProgress = await TeamProgress.findOne({teamId: req.user._id,currentLocation: locId});
     if (!teamProgress) {
