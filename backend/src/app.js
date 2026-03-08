@@ -7,7 +7,18 @@ import teamProgressRoutes from "./routes/teamProgressRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import { ApiResponse } from "./utils/apiResponse.js";
 import qrRouter from "./routes/qrCodeRoutes.js";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
 const app = express();
+
+
+// * helmet -- for Security HTTP headers
+app.use(
+  helmet({
+    hsts: false,
+  })
+);
 
 app.use(
   cors({
@@ -21,13 +32,28 @@ app.use(
     limit: "10mb",
   })
 );
-
 app.use(
   express.urlencoded({
     extended: true,
     limit: "10mb",
   })
 );
+
+// Data Sanitization --- against NoSQL Query Injection attacks and XSS attacks
+// ! Middleware order matters: these need to be after the body is parsed
+
+// * NoSQL query Injection attacks
+app.use(mongoSanitize());
+
+// * Rate Limiter -- from same IP
+// ? The limit resets automatically if the app restarts in the middle
+const limiter = rateLimit({
+  max: 200,
+  windowMs: 60 * 60 * 1000, // 1 hour
+  message: "Too many requests --- Try again after an hour!!",
+});
+app.use("/api", limiter);
+
 app.use(cookieParser());
 app.use("/healthcheck", (req, res) => {
   res.status(200).json(new ApiResponse(200, null, "OK"));
