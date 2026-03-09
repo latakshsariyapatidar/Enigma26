@@ -28,6 +28,13 @@ export const getTeamProgress = asyncHandler(async (req, res, next) => {
   const scoreIndex = Math.min(progress.currentRound - 1, numberOfRounds - 1);
   const totalScore = progress.assignedLocations[scoreIndex]?.score || 0;
 
+  // Calculate total hints used across all rounds
+  const hintsUsed = progress.assignedLocations.reduce(
+    (sum, loc) =>
+      sum + (loc.clueHintUsed ? 1 : 0) + (loc.puzzlehintUsed ? 1 : 0),
+    0
+  );
+
   return res.status(200).json(
     new ApiResponse(
       200,
@@ -36,34 +43,13 @@ export const getTeamProgress = asyncHandler(async (req, res, next) => {
         currentRound: progress.currentRound,
         currentLocation: location?.name,
         score: totalScore,
-        clue: location.clue,
+        clue: location.clue?.text || "",
+        hintsUsed,
       },
       "Team progress fetched successfully along with current location's clue "
     )
   );
 });
-
-// export const getClue = asyncHandler(async (req, res, next) => {
-//   const progress = await TeamProgress.findOne({
-//     teamId: req.user._id,
-//   });
-
-//   if (!progress) {
-//     return next(new ApiError(404, "Team progress not found"));
-//   }
-
-//   const location = await Location.findById(progress.currentLocation);
-
-//   return res.status(200).json(
-//     new ApiResponse(
-//       200,
-//       {
-
-//       },
-//       "Clue fetched successfully"
-//     )
-//   );
-// });
 
 export const getClueHint = asyncHandler(async (req, res, next) => {
   const progress = await TeamProgress.findOne({
@@ -280,6 +266,7 @@ export const getTeamProgressAdmin = asyncHandler(async (req, res, next) => {
       {
         summary: {
           teamId: progress.teamId,
+          teamName: team.name,
           currentRound: progress.currentRound,
           totalScore,
           totalTime: progress.CompletedIn,
@@ -295,9 +282,13 @@ export const getTeamProgressAdmin = asyncHandler(async (req, res, next) => {
 // * AllTeamProgress sorted for leaderboard purposes
 
 export const getAllTeamProgressAdmin = asyncHandler(async (req, res, next) => {
-  const participants = await Team.find({ role: "participant" }).select("_id");
+  const participants = await Team.find({ role: "participant" }).select("_id name");
 
   const participantIds = participants.map((team) => team._id);
+  const participantNameMap = {};
+  participants.forEach((team) => {
+    participantNameMap[team._id.toString()] = team.name;
+  });
 
   const allProgress = await TeamProgress.find({
     teamId: { $in: participantIds },
@@ -323,40 +314,62 @@ export const getAllTeamProgressAdmin = asyncHandler(async (req, res, next) => {
     );
 
     const status =
-      team.currentRound > team.assignedLocations.length ? "Done" : "Active";
+      team.currentRound > team.assignedLocations.length ? "complete" : "active";
 
-    if (status === "Done") finishedTeams++;
+    if (status === "complete") finishedTeams++;
 
     const displayRound = Math.min(
       team.currentRound,
       team.assignedLocations.length
     );
 
+    const teamName = participantNameMap[team.teamId.toString()] || "Unknown";
+
     leaderboard.push({
+      id: team.teamId,
       teamId: team.teamId,
-      round: `${displayRound}/${team.assignedLocations.length}`,
+      name: teamName,
+      round: displayRound,
       score: totalScore,
       hints: totalHints,
-      time: team.CompletedIn,
+      time: team.CompletedIn
+        ? new Date(team.CompletedIn).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "—",
       status,
     });
 
     hintUsage.push({
+      id: team.teamId,
       teamId: team.teamId,
+      name: teamName,
       hints: totalHints,
     });
   }
 
-  // sorting rule: rounds ↓ → score ↓ → time ↑
+  // sorting rule: score ↓ → time ↑ → rounds ↓
   leaderboard.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
 
-    if (a.time !== b.time) return a.time - b.time;
+    // For time comparison, use raw CompletedIn from the original data
+    // Teams without completion time go last
+    const teamA = allProgress.find(
+      (t) => t.teamId.toString() === a.teamId.toString()
+    );
+    const teamB = allProgress.find(
+      (t) => t.teamId.toString() === b.teamId.toString()
+    );
+    const timeA = teamA?.CompletedIn
+      ? new Date(teamA.CompletedIn).getTime()
+      : Infinity;
+    const timeB = teamB?.CompletedIn
+      ? new Date(teamB.CompletedIn).getTime()
+      : Infinity;
+    if (timeA !== timeB) return timeA - timeB;
 
-    const roundA = parseInt(a.round.split("/")[0]);
-    const roundB = parseInt(b.round.split("/")[0]);
-
-    return roundB - roundA;
+    return b.round - a.round;
   });
 
   return res.status(200).json(

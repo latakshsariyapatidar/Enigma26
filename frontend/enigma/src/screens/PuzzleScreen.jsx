@@ -37,7 +37,7 @@ export default function PuzzleScreen() {
             try {
                 const progressRes = await api.get("/teamProgress/progress");
                 const pd = progressRes.data.data;
-                setTeam((t) => ({ ...t, score: pd.score, round: pd.currentRound, clue: pd.clue }));
+                setTeam((t) => ({ ...t, score: pd.score, round: pd.currentRound, clue: pd.clue, hintsUsed: pd.hintsUsed || 0 }));
             } catch (err) {
                 console.error("Failed to update progress globally after correct answer");
             }

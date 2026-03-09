@@ -46,6 +46,7 @@ export default function LoginScreen() {
             round: progressData.currentRound || 1,
             totalRounds: 8, // Adjust as necessary
             clue: progressData.clue || "",
+            hintsUsed: progressData.hintsUsed || 0,
             name: userData.name,
           });
           navigate("dashboard");
@@ -56,6 +57,8 @@ export default function LoginScreen() {
             id: userData.name,
             score: 0,
             round: 1,
+            totalRounds: 8,
+            hintsUsed: 0,
             name: userData.name,
           });
           navigate("dashboard");

@@ -57,6 +57,7 @@ export default function App() {
               round: progressData.currentRound || 1,
               totalRounds: 8,
               clue: progressData.clue || "",
+              hintsUsed: progressData.hintsUsed || 0,
               name: userData.name,
             });
           } catch (err) {
@@ -64,6 +65,8 @@ export default function App() {
               id: userData.name,
               score: 0,
               round: 1,
+              totalRounds: 8,
+              hintsUsed: 0,
               name: userData.name,
             });
           }
