@@ -66,6 +66,6 @@ app.use("/api/v1/teamProgress", teamProgressRoutes);
 
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/location", locationRoutes);
-app.use("/api/v1/qrCode",qrRouter)
+app.use("/api/v1/qrCode", qrRouter)
 app.use(errorController);
 export default app;
