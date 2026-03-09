@@ -9,7 +9,7 @@ import { ApiResponse } from "./utils/apiResponse.js";
 import qrRouter from "./routes/qrCodeRoutes.js";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
+import mongoSanitize from "@exortek/express-mongo-sanitize";
 const app = express();
 
 
