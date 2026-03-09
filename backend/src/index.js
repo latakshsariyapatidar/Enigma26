@@ -1,10 +1,6 @@
-import dotev from "dotenv";
+import "dotenv/config"; // MUST be the first import so env vars are loaded before app.js
 import { connectDB } from "./db/index.js";
 import app from "./app.js";
-
-dotev.config({
-  path: "./.env",
-});
 
 console.log("NODE_ENV =", process.env.NODE_ENV);
 
