@@ -18,7 +18,7 @@ export default function HintScreen() {
             try {
                 const progressRes = await api.get("/teamProgress/progress");
                 const pd = progressRes.data.data;
-                setTeam(t => ({ ...t, score: pd.score }));
+                setTeam(t => ({ ...t, score: pd.score, hintsUsed: pd.hintsUsed || 0 }));
             } catch (e) { /* ignore */ }
 
             setConfirmed(true);
