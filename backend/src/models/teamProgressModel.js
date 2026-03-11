@@ -54,5 +54,7 @@ const teamProgressSchema = new mongoose.Schema({
   ],
 });
 
+teamProgressSchema.set('optimisticConcurrency', true);
+
 const TeamProgress = mongoose.model("TeamProgress", teamProgressSchema);
 export default TeamProgress;
