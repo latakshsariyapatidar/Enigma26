@@ -1,4 +1,4 @@
-export default function LeaderboardTable({ sorted, selected, setSelected, statusColor, statusLabel, navigate }) {
+export default function LeaderboardTable({ sorted, selected, setSelected, navigate }) {
     return (
         <div className="fade-up-2 card" style={{ padding: 0, overflow: "hidden" }}>
             <div
@@ -19,7 +19,7 @@ export default function LeaderboardTable({ sorted, selected, setSelected, status
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: "var(--font-mono)" }}>
                     <thead>
                         <tr style={{ background: "var(--surface2)" }}>
-                            {["#", "Team", "Round", "Score", "Hints", "Time", "Status", ""].map((h) => (
+                            {["#", "Team", "Round", "Score", "Hints", ""].map((h) => (
                                 <th
                                     key={h}
                                     style={{
@@ -51,10 +51,6 @@ export default function LeaderboardTable({ sorted, selected, setSelected, status
                                 <td style={{ padding: "12px 12px" }}>{t.round}</td>
                                 <td style={{ padding: "12px 12px", fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--accent)" }}>{t.score}</td>
                                 <td style={{ padding: "12px 12px", color: t.hints > 2 ? "var(--danger)" : "var(--muted)" }}>{t.hints}</td>
-                                <td style={{ padding: "12px 12px", color: "var(--muted)" }}>{t.time}</td>
-                                <td style={{ padding: "12px 12px" }}>
-                                    <span style={{ color: statusColor[t.status], fontSize: 11 }}>{statusLabel[t.status]}</span>
-                                </td>
                                 <td style={{ padding: "12px 12px" }}>
                                     <button
                                         onClick={(e) => {

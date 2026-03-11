@@ -10,12 +10,11 @@ export default function AssignedRoute({ route, currentRound }) {
             key={loc}
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
-              border: `1px solid ${i < 3 ? "var(--accent2)" : i === 3 ? "var(--accent)" : "var(--border)"}`,
+              border: `1px solid grey`,
               borderRadius: 2,
-              background: i < 3 ? "rgba(94,232,160,0.06)" : i === 3 ? "rgba(232,197,71,0.06)" : "transparent",
+              
             }}
           >
-            <span style={{ fontSize: 12 }}>{i < 3 ? "✅" : i === 3 ? "📍" : "⬜"}</span>
             <span style={{ fontSize: 12, color: i < currentRound ? "var(--text)" : "var(--muted)" }}>
               {loc}
             </span>
