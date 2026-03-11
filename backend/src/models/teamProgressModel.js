@@ -9,7 +9,7 @@ const teamProgressSchema = new mongoose.Schema({
   },
   currentRound: {
     type:Number,
-    default:1
+    default:0
   },
   currentLocation: {
     type: mongoose.Schema.ObjectId,

@@ -73,8 +73,8 @@ const run = async () => {
       // Create TeamProgress
       await TeamProgress.create({
         teamId: team._id,
-        currentRound: 1,
-        currentLocation: assignedIds[0],
+        currentRound: 0,
+        currentLocation: assignedIds[assignedIds.length - 1],
         assignedLocations: assignedIds.map((id) => ({
           location: id,
         })),
