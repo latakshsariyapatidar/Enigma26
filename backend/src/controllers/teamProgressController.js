@@ -25,7 +25,7 @@ export const getTeamProgress = asyncHandler(async (req, res, next) => {
     return next(new ApiError(404, "Location not found"));
   }
 
-  const scoreIndex = Math.min(progress.currentRound - 1, numberOfRounds - 1);
+  const scoreIndex = Math.min(Math.max(progress.currentRound - 1, 0), numberOfRounds - 1);
   const totalScore = progress.assignedLocations[scoreIndex]?.score || 0;
 
   // Calculate total hints used across all rounds
@@ -35,18 +35,40 @@ export const getTeamProgress = asyncHandler(async (req, res, next) => {
     0
   );
 
+  let responseData = {
+    teamId: progress.teamId,
+    currentRound: progress.currentRound,
+    currentLocation: location?.name,
+    locationId: location?._id,
+    score: totalScore,
+    hintsUsed,
+  };
+  
+  if (progress.currentRound === 0) {
+    const hintTaken = progress.assignedLocations.find(
+      (loc) => loc.location.toString() === progress.currentLocation.toString()
+    )?.puzzlehintUsed;
+    responseData = {
+      ...responseData,
+      puzzle: {
+        text: location.puzzle.text,
+        image: location.puzzle.image,
+        audio: location.puzzle.audio,
+        hint: hintTaken ? location.puzzle.puzzleHint : "",
+      }
+    };
+  } else {
+    responseData = {
+       ...responseData,
+       clue: location.clue?.text || "",
+    }
+  }
+
   return res.status(200).json(
     new ApiResponse(
       200,
-      {
-        teamId: progress.teamId,
-        currentRound: progress.currentRound,
-        currentLocation: location?.name,
-        score: totalScore,
-        clue: location.clue?.text || "",
-        hintsUsed,
-      },
-      "Team progress fetched successfully along with current location's clue "
+      responseData,
+      "Team progress fetched successfully along with current location's contents "
     )
   );
 });
@@ -65,8 +87,15 @@ export const getClueHint = asyncHandler(async (req, res, next) => {
   if (!location) {
     return next(new ApiError(404, "Location not found"));
   }
-  if (!location.clue.clueHint) {
+  if (!location.clue?.clueHint) {
     return next(new ApiError(404, "Clue-hint not available"));
+  }
+  
+  if (progress.currentRound === 0) {
+    return next(new ApiError(400, "You cannot get a clue for the base camp"));
+  }
+  if (progress.currentRound > numberOfRounds) {
+     return next(new ApiError(400, "Event is already completed"));
   }
 
   const current = progress.assignedLocations[progress.currentRound - 1];

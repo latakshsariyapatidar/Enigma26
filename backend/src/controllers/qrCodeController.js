@@ -15,6 +15,15 @@ const checkQrLocation = asyncHandler(async (req, res, next) => {
   if (!teamProgress) {
     return next(new ApiError(404, "Your are not at the correct location"));
   }
+
+  if (teamProgress.currentRound === 0) {
+    return next(
+      new ApiError(
+        400,
+        "Base camp puzzle is already available on your dashboard. No QR scan required."
+      )
+    );
+  }
   const location = await Location.findById(locId);
   if (!location) {
     return next(new ApiError(404, "Location not found"));
@@ -28,9 +37,11 @@ const checkQrLocation = asyncHandler(async (req, res, next) => {
     teamProgress.assignedLocations.find(
       (location) => location.location.toString() === locId
     ).qrcodeseen = true;
+    
+    // We already know currentRound > 0 because of the check at the top
     teamProgress.assignedLocations[teamProgress.currentRound - 1].score += 10;
+    
     if (teamProgress.currentRound == numberOfRounds) {
-      teamProgress.assignedLocations[teamProgress.currentRound - 1].score += 10;
       teamProgress.assignedLocations[
         teamProgress.currentRound - 1
       ].completedAt = new Date();
@@ -75,14 +86,30 @@ const checkPuzzleAnswer = asyncHandler(async (req, res, next) => {
     (location) => location.location.toString() === locId
   );
   if (current.status === "completed") {
+    // If they already scanned the QR for Round 8, it's marked completed.
+    // They shouldn't be able to submit a puzzle answer for it.
     return next(new ApiError(400, "This round is already completed"));
   }
+  
+  if (teamProgress.currentRound > numberOfRounds) {
+     return next(new ApiError(400, "Event is already completed"));
+  }
+  
   current.attempts += 1;
   if (answer.toLowerCase() !== location.puzzle.answer.toLowerCase()) {
     await teamProgress.save();
     return next(new ApiError(400, "Incorrect answer"));
   }
   //answer was correct
+  if (teamProgress.currentRound === 0) {
+    teamProgress.currentRound = 1;
+    teamProgress.currentLocation = teamProgress.assignedLocations[0].location;
+    await teamProgress.save();
+    return res.status(200).json(
+      new ApiResponse(200, {}, "Correct answer you can proceed to the first location")
+    );
+  }
+
   teamProgress.assignedLocations.find(
     (location) => location.location.toString() === locId
   ).status = "completed";
@@ -98,8 +125,6 @@ const checkPuzzleAnswer = asyncHandler(async (req, res, next) => {
       teamProgress.assignedLocations[teamProgress.currentRound - 2].score;
     teamProgress.currentLocation =
       teamProgress.assignedLocations[teamProgress.currentRound - 1].location;
-  } else {
-    teamProgress.CompletedIn = new Date();
   }
   await teamProgress.save();
   return res
@@ -128,6 +153,11 @@ const getPuzzleHint = asyncHandler(async (req, res, next) => {
   if (!current) {
     return next(new ApiError(400, "Invalid round state"));
   }
+  
+  if (teamProgress.currentRound > numberOfRounds) {
+     return next(new ApiError(400, "Event is already completed"));
+  }
+  
   if (!current.puzzlehintUsed) {
     current.puzzlehintUsed = true;
     current.score -= 5;
@@ -163,17 +193,34 @@ const giveUpPuzzle = asyncHandler(async (req, res, next) => {
   if (current.status === "completed") {
     return next(new ApiError(400, "This round is already completed"));
   }
+  if (teamProgress.currentRound > numberOfRounds) {
+     return next(new ApiError(400, "Event is already completed"));
+  }
+  if (teamProgress.currentRound === 0) {
+    current.score -= 5;
+    teamProgress.currentRound = 1;
+    teamProgress.currentLocation = teamProgress.assignedLocations[0].location;
+    teamProgress.assignedLocations[0].score += current.score;
+    await teamProgress.save();
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        { puzzleAnswer: location.puzzle.answer.toLowerCase() },
+        "Puzzle given up successfully"
+      )
+    );
+  }
+  
   current.status = "completed";
   current.completedAt = new Date();
   current.score -= 5;
   teamProgress.currentRound += 1;
+  
   if (teamProgress.currentRound <= teamProgress.assignedLocations.length) {
     teamProgress.assignedLocations[teamProgress.currentRound - 1].score +=
       teamProgress.assignedLocations[teamProgress.currentRound - 2].score;
     teamProgress.currentLocation =
       teamProgress.assignedLocations[teamProgress.currentRound - 1].location;
-  } else {
-    teamProgress.CompletedIn = new Date();
   }
   await teamProgress.save();
   return res
