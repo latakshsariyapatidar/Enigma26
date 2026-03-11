@@ -8,6 +8,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 const generateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await Team.findById(userId);
+    user.generateSessionId();
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
     user.refreshToken = refreshToken;

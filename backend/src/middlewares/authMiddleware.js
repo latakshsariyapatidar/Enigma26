@@ -17,6 +17,11 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     );
   
     if (!user) return next(new ApiError(401, "Invalid Access Token"));
+
+    // Single-device enforcement: reject if session ID doesn't match
+    if (decodedToken.sessionId !== user.activeSessionId) {
+      return next(new ApiError(401, "Session expired — logged in from another device"));
+    }
   
     req.user = user;
   

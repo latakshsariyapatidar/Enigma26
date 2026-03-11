@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 const teamSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -29,6 +30,9 @@ const teamSchema = new mongoose.Schema({
   refreshToken:{
         type:String
   },
+  activeSessionId:{
+        type:String
+  },
 });
 
 
@@ -47,12 +51,18 @@ teamSchema.methods.generateAccessToken=function(){
         _id:this._id,
         email:this.email,
         name:this.name,
-        role:this.role
+        role:this.role,
+        sessionId:this.activeSessionId
     },process.env.ACCESS_TOKEN_SECRET,
     {
         expiresIn:process.env.ACCESS_TOKEN_EXPIRY
     }
 )
+}
+
+teamSchema.methods.generateSessionId=function(){
+    this.activeSessionId = crypto.randomUUID();
+    return this.activeSessionId;
 }
 
 teamSchema.methods.generateRefreshToken=function(){

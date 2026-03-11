@@ -28,6 +28,10 @@ const handleExpiredJWTError = (err) => {
   return new ApiError(401, `The token is expired! -- Please Login again!!`);
 };
 
+const handleVersionError = (err) => {
+  return new ApiError(409, `Request conflict!`);
+};
+
 const sendErrorDev = (res, err) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -86,6 +90,9 @@ export default (err, req, res, next) => {
     }
     if (err.name === "TokenExpiredError") {
       error = handleExpiredJWTError(error);
+    }
+    if (err.name === "VersionError") {
+      error = handleVersionError(error);
     }
 
     sendErrorProd(res, error);
