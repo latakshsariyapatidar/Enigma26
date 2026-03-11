@@ -1,1 +1,1 @@
-export const numberOfRounds=3;
+export const numberOfRounds=8;

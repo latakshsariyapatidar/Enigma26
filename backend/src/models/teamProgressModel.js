@@ -9,12 +9,12 @@ const teamProgressSchema = new mongoose.Schema({
   },
   currentRound: {
     type:Number,
-    default:1
+    default:0
   },
   currentLocation: {
     type: mongoose.Schema.ObjectId,
     ref: "Location", // * For populate() function -- we'll use later on if required or can be ignored
-    default: null,
+    required: [true],
   },
   CompletedIn: Date,
   assignedLocations: [

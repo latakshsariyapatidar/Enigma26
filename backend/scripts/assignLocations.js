@@ -5,8 +5,6 @@ import Team from "../src/models/teamModel.js";
 import Location from "../src/models/locationModel.js";
 import TeamProgress from "../src/models/teamProgressModel.js";
 import { numberOfRounds } from "../src/constant.js";
-
-
 dotenv.config();
 
 // Fisher-Yates shuffle
@@ -75,8 +73,8 @@ const run = async () => {
       // Create TeamProgress
       await TeamProgress.create({
         teamId: team._id,
-        currentRound: 1,
-        currentLocation: assignedIds[0],
+        currentRound: 0,
+        currentLocation: assignedIds[assignedIds.length - 1],
         assignedLocations: assignedIds.map((id) => ({
           location: id,
         })),
