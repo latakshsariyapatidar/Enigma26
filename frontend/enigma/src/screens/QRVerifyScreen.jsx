@@ -5,9 +5,10 @@ import { Html5Qrcode } from "html5-qrcode";
 import api from "../utils/api";
 
 export default function QRVerifyScreen() {
-  const { navigate } = useApp();
+  const { navigate, setPuzzleData, setCurrentLocationId, team, setTeam, setGameCompleted, gameCompleted, setPrevScore } = useApp();
   const [status, setStatus] = useState("idle"); // idle | checking | correct | wrong
   const [errorMsg, setErrorMsg] = useState("");
+  const [qrPoints, setQrPoints] = useState(0);
   const scannerRef = useRef(null);
 
   useEffect(() => {
@@ -29,19 +30,96 @@ export default function QRVerifyScreen() {
       setErrorMsg("");
 
       // The QR code could be just the MongoDB LocId or a full URL.
-      // We will assume it's the raw LocId string for now.
       const scannedLocId = decodedText.trim();
 
       try {
-        await api.get(`/qrCode/checkQrLocation/${scannedLocId}`);
+        const res = await api.get(`/qrCode/checkQrLocation/${scannedLocId}`);
 
         setStatus("correct");
-        // Successfully verified! Stop the camera and redirect to puzzle
         try { await html5QrCode.stop(); } catch (e) { }
-        setTimeout(() => navigate("puzzle"), 1500);
+
+        // Re-fetch progress to determine if game completed (final round)
+        try {
+          const progressRes = await api.get("/teamProgress/progress");
+          const pd = progressRes.data.data;
+          if (!pd) {
+            // Final round — game completed
+            const earned = 10;
+            setQrPoints(earned);
+            setGameCompleted(true);
+            setPrevScore(team.score);
+            setTeam((t) => ({ ...t, score: t.score + earned }));
+            setTimeout(() => navigate("next-clue"), 2500);
+          } else {
+            // Normal round — store puzzle data, go to dashboard
+            const earned = pd.score - team.score;
+            setQrPoints(earned);
+            setPuzzleData(res.data.data);
+            setCurrentLocationId(scannedLocId);
+            setTeam((t) => ({
+              ...t,
+              score: pd.score,
+              round: pd.currentRound ?? t.round,
+              clue: pd.clue || t.clue,
+              hintsUsed: pd.hintsUsed || 0,
+            }));
+            setTimeout(() => navigate("dashboard"), 2500);
+          }
+        } catch (e) {
+          // Fallback: assume normal round
+          setQrPoints(10);
+          setPuzzleData(res.data.data);
+          setCurrentLocationId(scannedLocId);
+          setTimeout(() => navigate("dashboard"), 2500);
+        }
 
       } catch (err) {
         console.error("QR Verification Failed", err);
+
+        // If the QR call failed (e.g. 500 at final round), check if game actually completed
+        try {
+          const progressRes = await api.get("/teamProgress/progress");
+          const msg = progressRes.data?.message;
+          const pd = progressRes.data.data;
+
+          if (!pd || msg === "Event Completed") {
+            // Game completed — backend returned null data or "Event Completed"
+            setGameCompleted(true);
+            setStatus("correct");
+            setQrPoints(10);
+            setPrevScore(team.score);
+            setTeam((t) => ({ ...t, score: t.score + 10 }));
+            try { await html5QrCode.stop(); } catch (e) { }
+            setTimeout(() => navigate("next-clue"), 2500);
+            return;
+          }
+
+          // If progress shows they're on the final round and the scanned locId matches,
+          // the backend just failed to process the final QR — treat as completed
+          if (pd.locationId === scannedLocId && pd.currentRound === (pd.totalRounds || team.totalRounds)) {
+            setGameCompleted(true);
+            setStatus("correct");
+            setQrPoints(10);
+            setPrevScore(team.score);
+            setTeam((t) => ({ ...t, score: t.score + 10 }));
+            try { await html5QrCode.stop(); } catch (e) { }
+            setTimeout(() => navigate("next-clue"), 2500);
+            return;
+          }
+        } catch (progressErr) {
+          // If progress fetch also fails, check its message
+          if (progressErr.response?.data?.message === "Event Completed") {
+            setGameCompleted(true);
+            setStatus("correct");
+            setQrPoints(10);
+            setPrevScore(team.score);
+            setTeam((t) => ({ ...t, score: t.score + 10 }));
+            try { await html5QrCode.stop(); } catch (e) { }
+            setTimeout(() => navigate("next-clue"), 2500);
+            return;
+          }
+        }
+
         setStatus("wrong");
         setErrorMsg(err.response?.data?.message || "Location verification failed");
 
@@ -112,8 +190,13 @@ export default function QRVerifyScreen() {
           )}
 
           {status === "correct" && (
-            <div style={{ position: "absolute", inset: 0, background: "rgba(94,232,160,0.9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, zIndex: 10 }}>
-              ✅
+            <div style={{ position: "absolute", inset: 0, background: "rgba(94,232,160,0.9)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
+              <div style={{ fontSize: 48 }}>✅</div>
+              {qrPoints > 0 && (
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 24, color: "white", marginTop: 8 }}>
+                  +{qrPoints} pts
+                </div>
+              )}
             </div>
           )}
 
@@ -138,10 +221,10 @@ export default function QRVerifyScreen() {
         {status === "correct" && (
           <div className="card fade-up" style={{ border: "1px solid var(--accent2)", background: "rgba(94,232,160,0.06)", width: "100%", textAlign: "center" }}>
             <div style={{ color: "var(--accent2)", fontFamily: "var(--font-display)", fontWeight: 700, marginBottom: 6 }}>
-              Location Verified!
+              {gameCompleted ? "Hunt Complete!" : "Location Verified!"}
             </div>
             <div style={{ color: "var(--muted)", fontSize: 13 }}>
-              Unlocking your puzzle…
+              {gameCompleted ? "Finalizing your score\u2026" : `+${qrPoints} pts — Heading to dashboard\u2026`}
             </div>
           </div>
         )}

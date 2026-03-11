@@ -11,12 +11,48 @@ export default function AdminDashboardScreen() {
     const [selected, setSelected] = useState(null);
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [eventAction, setEventAction] = useState(null);
+
+    const handleLogout = async () => {
+        try {
+            await api.post("/users/logout");
+        } catch (err) {
+            console.error("Logout error", err);
+        }
+        navigate("login");
+    };
+
+    const handleEventAction = async (action) => {
+        setEventAction(action);
+        try {
+            await api.post(`/admin/${action}`);
+        } catch (err) {
+            console.error(`Event ${action} failed`, err);
+        } finally {
+            setEventAction(null);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const res = await api.get("/admin/dashboard");
-                setData(res.data.data);
+                const raw = res.data.data;
+                // Map leaderboard to UI-expected shape
+                const mapped = {
+                    ...raw,
+                    leaderboard: (raw.leaderboard || []).map((t) => {
+                        const statusMap = { Done: "complete", Active: "active" };
+                        return {
+                            ...t,
+                            id: t.teamId,
+                            name: t.name || t.teamId,
+                            status: statusMap[t.status] || "active",
+                            time: t.time ? new Date(t.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—",
+                        };
+                    }),
+                };
+                setData(mapped);
             } catch (err) {
                 console.error("Failed to load admin dashboard", err);
             } finally {
@@ -65,13 +101,31 @@ export default function AdminDashboardScreen() {
                         </div>
                     </div>
                 }
-                back="login"
             />
 
             {loading && !data ? (
                 <div style={{ padding: "50px", color: "var(--muted)", textAlign: "center" }}>Loading admin data...</div>
             ) : (
                 <div style={{ padding: "16px", maxWidth: 700, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+                    {/* Event Controls */}
+                    <div className="fade-up card" style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between", padding: "12px 16px" }}>
+                        <div style={{ fontSize: 12, fontFamily: "var(--font-display)", fontWeight: 700 }}>Event Controls</div>
+                        <div style={{ display: "flex", gap: 6 }}>
+                            <button className="btn-primary" style={{ padding: "5px 10px", fontSize: 10 }} onClick={() => handleEventAction("start-event")} disabled={!!eventAction}>
+                                {eventAction === "start-event" ? "..." : "▶ Start"}
+                            </button>
+                            <button className="btn-danger" style={{ padding: "5px 10px", fontSize: 10 }} onClick={() => handleEventAction("stop-event")} disabled={!!eventAction}>
+                                {eventAction === "stop-event" ? "..." : "⏹ Stop"}
+                            </button>
+                            <button className="btn-secondary" style={{ padding: "5px 10px", fontSize: 10 }} onClick={() => handleEventAction("upcoming-event")} disabled={!!eventAction}>
+                                {eventAction === "upcoming-event" ? "..." : "🔄 Upcoming"}
+                            </button>
+                            <button className="btn-secondary" style={{ padding: "5px 10px", fontSize: 10 }} onClick={handleLogout}>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+
                     {/* Summary */}
                     <div className="fade-up" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
                         {[

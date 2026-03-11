@@ -9,6 +9,7 @@ import DashboardScreen from "./screens/DashboardScreen";
 import QRVerifyScreen from "./screens/QRVerifyScreen";
 import PuzzleScreen from "./screens/PuzzleScreen";
 import HintScreen from "./screens/HintScreen";
+import ClueHintScreen from "./screens/ClueHintScreen";
 import NextClueScreen from "./screens/NextClueScreen";
 import AdminDashboardScreen from "./screens/AdminDashboardScreen";
 import AdminTeamDetailScreen from "./screens/AdminTeamDetailScreen";
@@ -21,6 +22,7 @@ const SCREENS = {
   "qr-verify": QRVerifyScreen,
   puzzle: PuzzleScreen,
   hint: HintScreen,
+  "clue-hint": ClueHintScreen,
   "next-clue": NextClueScreen,
   "admin-dashboard": AdminDashboardScreen,
   "admin-team-detail": AdminTeamDetailScreen,
@@ -33,6 +35,11 @@ export default function App() {
   const [team, setTeam] = useState(null);
   const [loadingApp, setLoadingApp] = useState(true);
   const [selectedAdminTeam, setSelectedAdminTeam] = useState(null);
+  const [currentLocationId, setCurrentLocationId] = useState(null);
+  const [puzzleData, setPuzzleData] = useState(null);
+  const [hintLocationId, setHintLocationId] = useState(null);
+  const [gameCompleted, setGameCompleted] = useState(false);
+  const [prevScore, setPrevScore] = useState(0);
 
   const navigate = (s, data = null) => {
     if (data) setSelectedAdminTeam(data);
@@ -51,20 +58,39 @@ export default function App() {
           try {
             const progressRes = await api.get("/teamProgress/progress");
             const progressData = progressRes.data.data;
-            setTeam({
-              id: userData.name,
-              score: progressData.score || 0,
-              round: progressData.currentRound || 1,
-              totalRounds: 8,
-              clue: progressData.clue || "",
-              hintsUsed: progressData.hintsUsed || 0,
-              name: userData.name,
-            });
+            if (progressData) {
+              setCurrentLocationId(progressData.locationId || null);
+              setTeam({
+                id: userData.name,
+                score: progressData.score || 0,
+                round: progressData.currentRound ?? 0,
+                totalRounds: progressData.totalRounds || 8,
+                clue: progressData.clue || "",
+                hintsUsed: progressData.hintsUsed || 0,
+                name: userData.name,
+              });
+              // At round 0, puzzle comes directly from progress
+              if (progressData.currentRound === 0 && progressData.puzzle) {
+                setPuzzleData(progressData.puzzle);
+              }
+              setGameCompleted(false);
+            } else {
+              // Event completed (backend returns null data)
+              setGameCompleted(true);
+              setTeam({
+                id: userData.name,
+                score: 0,
+                round: 0,
+                totalRounds: 8,
+                hintsUsed: 0,
+                name: userData.name,
+              });
+            }
           } catch (err) {
             setTeam({
               id: userData.name,
               score: 0,
-              round: 1,
+              round: 0,
               totalRounds: 8,
               hintsUsed: 0,
               name: userData.name,
@@ -94,7 +120,7 @@ export default function App() {
   }
 
   return (
-    <AppCtx.Provider value={{ navigate, team, setTeam, selectedAdminTeam, setSelectedAdminTeam }}>
+    <AppCtx.Provider value={{ navigate, team, setTeam, selectedAdminTeam, setSelectedAdminTeam, currentLocationId, setCurrentLocationId, puzzleData, setPuzzleData, hintLocationId, setHintLocationId, gameCompleted, setGameCompleted, prevScore, setPrevScore }}>
       <FontLink />
       <Screen />
     </AppCtx.Provider>

@@ -63,18 +63,17 @@ export default function AdminLocationManagerScreen() {
         }
 
         try {
+            const formData = new FormData();
+            formData.append("name", form.name);
+            formData.append("clueText", form.clue);
+            if (form.clueHint) formData.append("clueHint", form.clueHint);
+            if (form.puzzle) formData.append("puzzleText", form.puzzle);
+            if (form.puzzleHint) formData.append("puzzleHint", form.puzzleHint);
+            formData.append("answer", form.answer);
 
-            // Create Flow
-            const payload = {
-                name: form.name,
-                clueText: form.clue,
-                clueHint: form.clueHint,
-                puzzleText: form.puzzle,
-                puzzleHint: form.puzzleHint,
-                answer: form.answer,
-            };
-
-            const res = await api.post("/location/create-location", payload);
+            const res = await api.post("/location/create-location", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
             const newLoc = res.data.data;
 
             // Add strictly mapping to UI shape

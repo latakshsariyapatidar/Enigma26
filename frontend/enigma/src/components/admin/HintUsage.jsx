@@ -13,7 +13,7 @@ export default function HintUsage({ teams }) {
               textAlign: "center", background: "var(--surface2)",
             }}
           >
-            <div style={{ fontSize: 11, color: "var(--muted)" }}>{t.id}</div>
+            <div style={{ fontSize: 11, color: "var(--muted)" }}>{t.name}</div>
             <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: t.hints > 2 ? "var(--danger)" : "var(--text)", marginTop: 2 }}>
               {t.hints}
             </div>

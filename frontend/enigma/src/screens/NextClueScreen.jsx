@@ -1,14 +1,10 @@
-import { useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import TopBar from "../components/common/TopBar";
 
 export default function NextClueScreen() {
-    const { navigate, team, setTeam } = useApp();
-    const isFinal = team.round >= team.totalRounds;
-
-    useEffect(() => {
-        if (!isFinal) setTeam((t) => ({ ...t, round: t.round + 1 }));
-    }, []);
+    const { navigate, team, gameCompleted, prevScore } = useApp();
+    const pointsEarned = team.score - (prevScore ?? 0);
+    const isFinal = gameCompleted;
 
     if (isFinal)
         return (
@@ -135,11 +131,11 @@ export default function NextClueScreen() {
                                 fontFamily: "var(--font-display)",
                                 fontWeight: 800,
                                 fontSize: 28,
-                                color: "var(--accent2)",
+                                color: pointsEarned >= 0 ? "var(--accent2)" : "var(--danger)",
                                 marginTop: 4,
                             }}
                         >
-                            +20
+                            {pointsEarned >= 0 ? `+${pointsEarned}` : pointsEarned}
                         </div>
                     </div>
                     <div style={{ width: 1, background: "var(--border)" }} />

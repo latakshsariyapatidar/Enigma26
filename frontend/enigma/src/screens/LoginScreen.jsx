@@ -3,7 +3,7 @@ import { useApp } from "../context/AppContext";
 import api from "../utils/api";
 
 export default function LoginScreen() {
-  const { navigate, setTeam } = useApp();
+  const { navigate, setTeam, setCurrentLocationId, setPuzzleData, setGameCompleted } = useApp();
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
@@ -16,12 +16,6 @@ export default function LoginScreen() {
     }
     setLoading(true);
     setErr("");
-
-    // Temporary fallback for admin dummy login if needed
-    if (id === "admin" && pw === "admin123") {
-      navigate("admin-dashboard");
-      return;
-    }
 
     try {
       const response = await api.post("/users/login", {
@@ -40,23 +34,41 @@ export default function LoginScreen() {
           const progressRes = await api.get("/teamProgress/progress");
           const progressData = progressRes.data.data;
 
-          setTeam({
-            id: userData.name,
-            score: progressData.score || 0,
-            round: progressData.currentRound || 1,
-            totalRounds: 8, // Adjust as necessary
-            clue: progressData.clue || "",
-            hintsUsed: progressData.hintsUsed || 0,
-            name: userData.name,
-          });
+          if (progressData) {
+            setCurrentLocationId(progressData.locationId || null);
+            setTeam({
+              id: userData.name,
+              score: progressData.score || 0,
+              round: progressData.currentRound ?? 0,
+              totalRounds: progressData.totalRounds || 8,
+              clue: progressData.clue || "",
+              hintsUsed: progressData.hintsUsed || 0,
+              name: userData.name,
+            });
+            // At round 0, puzzle comes directly from progress
+            if (progressData.currentRound === 0 && progressData.puzzle) {
+              setPuzzleData(progressData.puzzle);
+            }
+            setGameCompleted(false);
+          } else {
+            // Event completed (backend returns null data)
+            setGameCompleted(true);
+            setTeam({
+              id: userData.name,
+              score: 0,
+              round: 0,
+              totalRounds: 8,
+              hintsUsed: 0,
+              name: userData.name,
+            });
+          }
           navigate("dashboard");
         } catch (progressErr) {
           console.error("Failed to fetch progress", progressErr);
-          // Fallback to basic team info
           setTeam({
             id: userData.name,
             score: 0,
-            round: 1,
+            round: 0,
             totalRounds: 8,
             hintsUsed: 0,
             name: userData.name,
@@ -208,17 +220,6 @@ export default function LoginScreen() {
           </div>
         </div>
 
-        <div
-          className="fade-up-3"
-          style={{
-            textAlign: "center",
-            marginTop: 16,
-            fontSize: 11,
-            color: "var(--muted)",
-          }}
-        >
-          Demo: any Team ID + password "pass" &nbsp;|&nbsp; admin / admin123
-        </div>
       </div>
     </div>
   );

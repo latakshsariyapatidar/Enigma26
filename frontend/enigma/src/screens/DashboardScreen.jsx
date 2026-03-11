@@ -2,10 +2,24 @@ import { useApp } from "../context/AppContext";
 import Ticker from "../components/common/Ticker";
 import TopBar from "../components/common/TopBar";
 import StatCard from "../components/common/StatCard";
+import api from "../utils/api";
 
 export default function DashboardScreen() {
-    const { navigate, team } = useApp();
-    const progress = ((team.round - 1) / team.totalRounds) * 100;
+    const { navigate, team, setTeam, setCurrentLocationId, gameCompleted, puzzleData } = useApp();
+    const isBaseCamp = team.round === 0;
+    const isCompleted = gameCompleted;
+    const progress = isCompleted ? 100 : (team.round / (team.totalRounds || 1)) * 100;
+
+    const handleLogout = async () => {
+        try {
+            await api.post("/users/logout");
+        } catch (err) {
+            console.error("Logout error", err);
+        }
+        setTeam(null);
+        setCurrentLocationId(null);
+        navigate("login");
+    };
 
     return (
         <div className="screen" style={{ background: "var(--bg)" }}>
@@ -17,7 +31,7 @@ export default function DashboardScreen() {
                         <span className="tag">{team.id}</span>
                         <button
                             className="btn-secondary"
-                            onClick={() => navigate("login")}
+                            onClick={handleLogout}
                             style={{ width: "auto", padding: "6px 14px", fontSize: 11 }}
                         >
                             Logout
@@ -108,7 +122,7 @@ export default function DashboardScreen() {
                         >
                             <span>Hunt Progress</span>
                             <span>
-                                {team.round - 1}/{team.totalRounds} complete
+                                {team.round}/{team.totalRounds} complete
                             </span>
                         </div>
                         <div
@@ -149,60 +163,111 @@ export default function DashboardScreen() {
                     />
                 </div>
 
-                {/* Current Clue */}
-                <div
-                    className="fade-up-3 card"
-                    style={{ borderLeft: "3px solid var(--accent)" }}
-                >
+                {/* Current Clue / Base Camp */}
+                {!isCompleted && (
                     <div
-                        style={{
-                            fontSize: 11,
-                            color: "var(--accent)",
-                            letterSpacing: "0.12em",
-                            textTransform: "uppercase",
-                            marginBottom: 10,
-                        }}
+                        className="fade-up-3 card"
+                        style={{ borderLeft: "3px solid var(--accent)" }}
                     >
-                        Current Clue
+                        {isBaseCamp ? (
+                            <>
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "var(--accent)",
+                                        letterSpacing: "0.12em",
+                                        textTransform: "uppercase",
+                                        marginBottom: 10,
+                                    }}
+                                >
+                                    Base Camp
+                                </div>
+                                <div
+                                    style={{
+                                        fontFamily: "var(--font-display)",
+                                        fontSize: 15,
+                                        lineHeight: 1.6,
+                                        color: "var(--text)",
+                                    }}
+                                >
+                                    Your first puzzle is ready! Solve it to receive your first clue.
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "var(--accent)",
+                                        letterSpacing: "0.12em",
+                                        textTransform: "uppercase",
+                                        marginBottom: 10,
+                                    }}
+                                >
+                                    Current Clue
+                                </div>
+                                <div
+                                    style={{
+                                        fontFamily: "var(--font-display)",
+                                        fontSize: 15,
+                                        lineHeight: 1.6,
+                                        color: "var(--text)",
+                                    }}
+                                >
+                                    "{team.clue || "No clue available yet."}"
+                                </div>
+                                <button
+                                    className="btn-danger"
+                                    onClick={() => navigate("clue-hint")}
+                                    style={{
+                                        marginTop: 14,
+                                        width: "auto",
+                                        padding: "7px 16px",
+                                        fontSize: 11,
+                                    }}
+                                >
+                                    🔍 Request Clue Hint (−5 pts)
+                                </button>
+                            </>
+                        )}
                     </div>
-                    <div
-                        style={{
-                            fontFamily: "var(--font-display)",
-                            fontSize: 15,
-                            lineHeight: 1.6,
-                            color: "var(--text)",
-                        }}
-                    >
-                        "{team.clue}"
-                    </div>
-                    <button
-                        className="btn-danger"
-                        onClick={() => navigate("hint")}
-                        style={{
-                            marginTop: 14,
-                            width: "auto",
-                            padding: "7px 16px",
-                            fontSize: 11,
-                        }}
-                    >
-                        💡 Request Hint (−5 pts)
-                    </button>
-                </div>
+                )}
 
                 {/* Action buttons */}
                 <div
                     className="fade-up-4"
                     style={{ display: "flex", flexDirection: "column", gap: 10 }}
                 >
-                    <button
-                        className="btn-primary pulse-btn"
-                        onClick={() => navigate("qr-verify")}
-                    >
-                        📷 Scan QR Code at Location
-                    </button>
-                    <button className="btn-secondary" onClick={() => navigate("puzzle")}>
-                        🧩 Go to Current Puzzle
-                    </button>
+                    {isCompleted ? (
+                        <div className="card" style={{ textAlign: "center", padding: 24, border: "1px solid var(--accent)" }}>
+                            <div style={{ fontSize: 48, marginBottom: 12 }}>🏆</div>
+                            <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 20, color: "var(--accent)", marginBottom: 8 }}>
+                                Hunt Complete!
+                            </div>
+                            <div style={{ color: "var(--muted)", fontSize: 13 }}>
+                                Congratulations! Your final score has been recorded.
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {isBaseCamp ? (
+                                <button className="btn-primary pulse-btn" onClick={() => navigate("puzzle")}>
+                                    🧩 Solve Base Camp Puzzle
+                                </button>
+                            ) : puzzleData ? (
+                                <button className="btn-primary pulse-btn" onClick={() => navigate("puzzle")}>
+                                    🧩 Answer the Puzzle
+                                </button>
+                            ) : (
+                                <button
+                                    className="btn-primary pulse-btn"
+                                    onClick={() => navigate("qr-verify")}
+                                >
+                                    📷 Scan QR Code at Location
+                                </button>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
         </div>
