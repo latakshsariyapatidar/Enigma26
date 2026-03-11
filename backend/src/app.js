@@ -48,7 +48,7 @@ app.use(mongoSanitize());
 // * Rate Limiter -- from same IP
 // ? The limit resets automatically if the app restarts in the middle
 const limiter = rateLimit({
-  max: 200,
+  max: 2000,
   windowMs: 60 * 60 * 1000, // 1 hour
   message: "Too many requests --- Try again after an hour!!",
 });
