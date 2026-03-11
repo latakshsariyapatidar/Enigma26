@@ -4,6 +4,7 @@
 node_modules/
 teams.csv
 credentials.csv
+qrcodes/
 # ------------------------------
 # Environment Variables
 # ------------------------------

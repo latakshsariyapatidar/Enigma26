@@ -21,12 +21,12 @@ const sendMail = async (email, name, password, role) => {
       to: email,
       subject: "Your Enigma Account Credentials",
       text: `
-Hello ${name},
+Hello ,
 
 Your account has been created.
 
-Role: ${role}
-Email: ${email}
+Role: ${role},
+Team Id:${name},
 Password: ${password}
 
 Please login and change your password.
