@@ -6,9 +6,11 @@ import api from "../utils/api";
 
 export default function DashboardScreen() {
     const { navigate, team, setTeam, setCurrentLocationId, gameCompleted, puzzleData } = useApp();
-    const isBaseCamp = team.round === 0;
+    const isBaseCamp = team.round === 0 && puzzleData;
     const isCompleted = gameCompleted;
-    const progress = isCompleted ? 100 : (team.round / (team.totalRounds || 1)) * 100;
+    // Completed rounds: if puzzle is unsolved (puzzleData exists), current round isn't done yet
+    const completedRounds = isCompleted ? team.totalRounds : puzzleData ? Math.max(0, team.round - 1) : team.round;
+    const progress = isCompleted ? 100 : (completedRounds / (team.totalRounds || 1)) * 100;
 
     const handleLogout = async () => {
         try {
@@ -122,7 +124,7 @@ export default function DashboardScreen() {
                         >
                             <span>Hunt Progress</span>
                             <span>
-                                {team.round}/{team.totalRounds} complete
+                                {completedRounds}/{team.totalRounds} complete
                             </span>
                         </div>
                         <div

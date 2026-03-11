@@ -17,7 +17,14 @@ export const getTeamProgress = asyncHandler(async (req, res, next) => {
   }
 
   if (progress.currentRound > numberOfRounds) {
-    return res.status(200).json(new ApiResponse(200, null, "Event Completed"));
+    const scoreIndex = numberOfRounds - 1;
+    const totalScore = progress.assignedLocations[scoreIndex]?.score || 0;
+    const hintsUsed = progress.assignedLocations.reduce(
+      (sum, loc) =>
+        sum + (loc.clueHintUsed ? 1 : 0) + (loc.puzzlehintUsed ? 1 : 0),
+      0
+    );
+    return res.status(200).json(new ApiResponse(200, { completed: true, score: totalScore, hintsUsed, currentRound: progress.currentRound }, "Event Completed"));
   }
 
   const location = await Location.findById(progress.currentLocation);
@@ -45,18 +52,31 @@ export const getTeamProgress = asyncHandler(async (req, res, next) => {
   };
   
   if (progress.currentRound === 0) {
-    const hintTaken = progress.assignedLocations.find(
-      (loc) => loc.location.toString() === progress.currentLocation.toString()
-    )?.puzzlehintUsed;
-    responseData = {
-      ...responseData,
-      puzzle: {
-        text: location.puzzle.text,
-        image: location.puzzle.image,
-        audio: location.puzzle.audio,
-        hint: hintTaken ? location.puzzle.puzzleHint : "",
-      }
-    };
+    // Base camp = last assignedLocation. If currentLocation != last, base camp is solved.
+    const baseCampLocId = progress.assignedLocations[progress.assignedLocations.length - 1].location.toString();
+    const atBaseCamp = progress.currentLocation.toString() === baseCampLocId;
+    
+    if (atBaseCamp) {
+      // Still at base camp, show puzzle
+      const hintTaken = progress.assignedLocations.find(
+        (loc) => loc.location.toString() === progress.currentLocation.toString()
+      )?.puzzlehintUsed;
+      responseData = {
+        ...responseData,
+        puzzle: {
+          text: location.puzzle.text,
+          image: location.puzzle.image,
+          audio: location.puzzle.audio,
+          hint: hintTaken ? location.puzzle.puzzleHint : "",
+        }
+      };
+    } else {
+      // Base camp solved, show clue for the location they need to go to
+      responseData = {
+        ...responseData,
+        clue: location.clue?.text || "",
+      };
+    }
   } else {
     responseData = {
        ...responseData,
@@ -92,13 +112,20 @@ export const getClueHint = asyncHandler(async (req, res, next) => {
   }
   
   if (progress.currentRound === 0) {
-    return next(new ApiError(400, "You cannot get a clue for the base camp"));
+    // Only block clue hint if still at base camp
+    const baseCampLocId = progress.assignedLocations[progress.assignedLocations.length - 1].location.toString();
+    const atBaseCamp = progress.currentLocation.toString() === baseCampLocId;
+    if (atBaseCamp) {
+      return next(new ApiError(400, "You cannot get a clue for the base camp"));
+    }
   }
   if (progress.currentRound > numberOfRounds) {
      return next(new ApiError(400, "Event is already completed"));
   }
 
-  const current = progress.assignedLocations[progress.currentRound - 1];
+  // For round 0 after base camp solved, charge to assignedLocations[0]; otherwise currentRound - 1
+  const roundIndex = progress.currentRound === 0 ? 0 : progress.currentRound - 1;
+  const current = progress.assignedLocations[roundIndex];
   if (!current) {
     return next(new ApiError(400, "Invalid round state"));
   }

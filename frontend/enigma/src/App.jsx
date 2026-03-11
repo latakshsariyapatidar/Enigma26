@@ -58,7 +58,8 @@ export default function App() {
           try {
             const progressRes = await api.get("/teamProgress/progress");
             const progressData = progressRes.data.data;
-            if (progressData) {
+            const progressMsg = progressRes.data.message;
+            if (progressData && !progressData.completed) {
               setCurrentLocationId(progressData.locationId || null);
               setTeam({
                 id: userData.name,
@@ -75,14 +76,14 @@ export default function App() {
               }
               setGameCompleted(false);
             } else {
-              // Event completed (backend returns null data)
+              // Event completed (backend returns completed: true or null data)
               setGameCompleted(true);
               setTeam({
                 id: userData.name,
-                score: 0,
-                round: 0,
+                score: progressData?.score || 0,
+                round: progressData?.currentRound || 0,
                 totalRounds: 8,
-                hintsUsed: 0,
+                hintsUsed: progressData?.hintsUsed || 0,
                 name: userData.name,
               });
             }

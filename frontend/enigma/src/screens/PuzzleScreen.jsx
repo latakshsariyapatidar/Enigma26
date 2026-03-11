@@ -57,7 +57,7 @@ export default function PuzzleScreen() {
             try {
                 const progressRes = await api.get("/teamProgress/progress");
                 const pd = progressRes.data.data;
-                if (pd) {
+                if (pd && !pd.completed) {
                     setCurrentLocationId(pd.locationId || null);
                     setTeam((t) => ({
                         ...t,
@@ -68,6 +68,9 @@ export default function PuzzleScreen() {
                     }));
                 } else {
                     setGameCompleted(true);
+                    if (pd?.score != null) {
+                        setTeam((t) => ({ ...t, score: pd.score }));
+                    }
                 }
             } catch (err) {
                 console.error("Failed to update progress globally after correct answer");
@@ -92,7 +95,7 @@ export default function PuzzleScreen() {
             try {
                 const progressRes = await api.get("/teamProgress/progress");
                 const pd = progressRes.data.data;
-                if (pd) {
+                if (pd && !pd.completed) {
                     setCurrentLocationId(pd.locationId || null);
                     setTeam((t) => ({
                         ...t,
@@ -103,6 +106,9 @@ export default function PuzzleScreen() {
                     }));
                 } else {
                     setGameCompleted(true);
+                    if (pd?.score != null) {
+                        setTeam((t) => ({ ...t, score: pd.score }));
+                    }
                 }
             } catch (e) { /* ignore */ }
         } catch (err) {

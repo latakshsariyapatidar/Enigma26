@@ -14,7 +14,7 @@ const teamProgressSchema = new mongoose.Schema({
   currentLocation: {
     type: mongoose.Schema.ObjectId,
     ref: "Location", // * For populate() function -- we'll use later on if required or can be ignored
-    required: [true],
+    default: null,
   },
   CompletedIn: Date,
   assignedLocations: [
