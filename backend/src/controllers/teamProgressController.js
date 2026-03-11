@@ -87,7 +87,7 @@ export const getClueHint = asyncHandler(async (req, res, next) => {
   if (!location) {
     return next(new ApiError(404, "Location not found"));
   }
-  if (!location.clue.clueHint) {
+  if (!location.clue?.clueHint) {
     return next(new ApiError(404, "Clue-hint not available"));
   }
   
