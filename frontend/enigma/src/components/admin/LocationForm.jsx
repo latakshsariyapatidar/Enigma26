@@ -1,7 +1,7 @@
 import TopBar from "../common/TopBar";
 import Field from "../common/Field";
 
-export default function LocationForm({ view, form, setForm, PUZZLE_TYPES, saved, errorMsg, editing, locationsLength, saveLocation, setView }) {
+export default function LocationForm({ view, form, setForm, saved, errorMsg, editing, locationsLength, saveLocation, setView }) {
     return (
         <div className="screen" style={{ background: "var(--bg)" }}>
             <TopBar
@@ -39,45 +39,74 @@ export default function LocationForm({ view, form, setForm, PUZZLE_TYPES, saved,
                         <span style={{ color: "var(--accent2)" }}>03</span> Puzzle
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <Field label="Puzzle Text" name="puzzle" placeholder="Enter the puzzle question (text only, or with image below)…" textarea form={form} setForm={setForm} />
+
                         <div>
                             <div style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
-                                Puzzle Type <span style={{ color: "var(--accent)" }}>*</span>
+                                Puzzle Image <span style={{ fontSize: 10, opacity: 0.7 }}>(optional - shown if no text or alongside text)</span>
                             </div>
-                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                {PUZZLE_TYPES.map((t) => (
+                            <div
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    e.currentTarget.style.borderColor = "var(--accent2)";
+                                    e.currentTarget.style.background = "rgba(94,232,160,0.05)";
+                                }}
+                                onDragLeave={(e) => {
+                                    e.currentTarget.style.borderColor = "var(--border)";
+                                    e.currentTarget.style.background = "transparent";
+                                }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    e.currentTarget.style.borderColor = "var(--border)";
+                                    e.currentTarget.style.background = "transparent";
+                                    const file = e.dataTransfer.files[0];
+                                    if (file && file.type.startsWith("image/")) {
+                                        setForm((f) => ({ ...f, puzzleImageFile: file }));
+                                    } else {
+                                        alert("Please drop an image file (PNG, JPG, etc.)");
+                                    }
+                                }}
+                                style={{ border: "2px dashed var(--border)", borderRadius: 2, padding: "24px", textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}
+                            >
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) setForm((f) => ({ ...f, puzzleImageFile: file }));
+                                    }}
+                                    style={{ display: "none" }}
+                                    id="puzzleImageInput"
+                                />
+                                <label htmlFor="puzzleImageInput" style={{ cursor: "pointer", display: "block" }}>
+                                    {form.puzzleImageFile ? (
+                                        <>
+                                            <div style={{ fontSize: 28, marginBottom: 8 }}>🖼️</div>
+                                            <div style={{ fontSize: 12, color: "var(--accent2)", fontWeight: 600 }}>{form.puzzleImageFile.name}</div>
+                                            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{(form.puzzleImageFile.size / 1024).toFixed(1)} KB</div>
+                                            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, opacity: 0.6 }}>Click to change or drag new image</div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div style={{ fontSize: 28, marginBottom: 8 }}>📁</div>
+                                            <div style={{ fontSize: 12, color: "var(--muted)" }}>Click to upload or drag & drop</div>
+                                            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, opacity: 0.6 }}>PNG, JPG, GIF up to 5MB</div>
+                                        </>
+                                    )}
+                                </label>
+                            </div>
+                            {form.puzzleImageFile && (
+                                <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
                                     <button
-                                        key={t}
-                                        onClick={() => setForm((f) => ({ ...f, puzzleType: t }))}
-                                        style={{
-                                            padding: "7px 16px", border: `1px solid ${form.puzzleType === t ? "var(--accent2)" : "var(--border)"}`,
-                                            background: form.puzzleType === t ? "rgba(94,232,160,0.1)" : "transparent",
-                                            color: form.puzzleType === t ? "var(--accent2)" : "var(--muted)",
-                                            cursor: "pointer", fontSize: 12, fontFamily: "var(--font-mono)", borderRadius: 2, textTransform: "capitalize", transition: "all 0.15s",
-                                        }}
+                                        onClick={() => setForm((f) => ({ ...f, puzzleImageFile: null }))}
+                                        style={{ padding: "6px 12px", fontSize: 11, background: "var(--danger)", color: "white", border: "none", borderRadius: 2, cursor: "pointer" }}
                                     >
-                                        {t === "riddle" ? "🧩 " : t === "cipher" ? "🔐 " : t === "image" ? "🖼️ " : "🧠 "}{t}
+                                        Remove Image
                                     </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <Field label="Puzzle Text" name="puzzle" placeholder={form.puzzleType === "cipher" ? "Enter the encoded message…" : form.puzzleType === "image" ? "Enter the question for the image…" : "Enter the riddle or logic question…"} textarea required form={form} setForm={setForm} />
-
-                        {form.puzzleType === "image" && (
-                            <div>
-                                <div style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Puzzle Image</div>
-                                <div
-                                    style={{ border: "2px dashed var(--border)", borderRadius: 2, padding: "24px", textAlign: "center", cursor: "pointer", transition: "border-color 0.2s" }}
-                                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--accent2)")}
-                                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
-                                    onClick={() => setForm((f) => ({ ...f, hasImage: !f.hasImage }))}
-                                >
-                                    <div style={{ fontSize: 28, marginBottom: 8 }}>{form.hasImage ? "🖼️" : "📁"}</div>
-                                    <div style={{ fontSize: 12, color: "var(--muted)" }}>{form.hasImage ? "Image selected (demo)" : "Click to upload image"}</div>
-                                    <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, opacity: 0.6 }}>PNG, JPG up to 5MB</div>
+                                    <div style={{ fontSize: 11, color: "var(--muted)" }}>Image will be uploaded to Cloudinary on save</div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
 
                         <Field label="Puzzle Hint" name="puzzleHint" placeholder="Simpler hint shown if team requests hint on this puzzle (−5 pts)" textarea form={form} setForm={setForm} />
 
@@ -114,9 +143,9 @@ export default function LocationForm({ view, form, setForm, PUZZLE_TYPES, saved,
                         ⚠ {errorMsg}
                     </div>
                 )}
-                {(!form.name || !form.qrId || !form.clue || !form.answer) && (
+                {(!form.name || !form.qrId || !form.clue || !form.answer || (!form.puzzle && !form.puzzleImageFile)) && (
                     <div style={{ fontSize: 12, color: "var(--danger)", padding: "10px 14px", border: "1px solid rgba(232,94,94,0.2)", background: "rgba(232,94,94,0.06)", borderRadius: 2 }}>
-                        ⚠ Fields marked with * are required before saving.
+                        ⚠ Fields marked with * are required. Puzzle must have either text or image (or both).
                     </div>
                 )}
 

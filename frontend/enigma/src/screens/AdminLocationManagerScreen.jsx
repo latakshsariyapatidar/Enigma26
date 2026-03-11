@@ -4,14 +4,10 @@ import LocationList from "../components/admin/LocationList";
 import api from "../utils/api";
 
 const EMPTY_LOC = {
-    name: "", qrId: "", clue: "", clueHint: "", puzzleType: "riddle", puzzle: "", puzzleHint: "", answer: "", hasImage: false,
+    name: "", qrId: "", clue: "", clueHint: "", puzzle: "", puzzleHint: "", answer: "", puzzleImageFile: null,
 };
 
-const INIT_LOCATIONS = [
-    { id: 1, name: "Library", qrId: "QR_001", clue: "Where knowledge flows but never speaks…", clueHint: "Think books and silence.", puzzleType: "riddle", puzzle: "I have cities but no houses…", puzzleHint: "Something you navigate with.", answer: "map", hasImage: false },
-    { id: 2, name: "Canteen", qrId: "QR_002", clue: "Where hunger meets chatter at midday…", clueHint: "Everyone goes here for lunch.", puzzleType: "cipher", puzzle: "DBOUFFO → ?", puzzleHint: "Shift each letter back by one.", answer: "canteen", hasImage: false },
-    { id: 3, name: "Lab Block", qrId: "QR_003", clue: "Where circuits hum and code runs free…", clueHint: "Think computers and experiments.", puzzleType: "image", puzzle: "Identify the landmark in the image.", puzzleHint: "Look at the rooftop shape.", answer: "lab block", hasImage: true },
-];
+// INIT_LOCATIONS removed - fetched from backend
 
 export default function AdminLocationManagerScreen() {
     const [locations, setLocations] = useState([]);
@@ -20,8 +16,6 @@ export default function AdminLocationManagerScreen() {
     const [saved, setSaved] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-    const PUZZLE_TYPES = ["riddle", "cipher", "image", "logic"];
 
     // Fetch locations on mount
     useEffect(() => {
@@ -39,10 +33,10 @@ export default function AdminLocationManagerScreen() {
                 qrId: "QR_" + loc._id.substring(loc._id.length - 4),
                 clue: loc.clue?.text || "",
                 clueHint: loc.clue?.clueHint || "",
-                puzzleType: loc.puzzle?.type || "riddle",
                 puzzle: loc.puzzle?.text || "",
                 puzzleHint: loc.puzzle?.puzzleHint || "",
                 answer: loc.puzzle?.answer || "",
+                puzzleImageUrl: loc.puzzle?.image || null,
             }));
             setLocations(mapped);
         } catch (err) {
@@ -57,8 +51,8 @@ export default function AdminLocationManagerScreen() {
     };
 
     const saveLocation = async () => {
-        if (!form.name || !form.clue || !form.answer) {
-            setErrorMsg("Please fill required fields");
+        if (!form.name || !form.clue || !form.answer || (!form.puzzle && !form.puzzleImageFile)) {
+            setErrorMsg("Please fill required fields. Puzzle must have text or image.");
             return;
         }
 
@@ -70,6 +64,7 @@ export default function AdminLocationManagerScreen() {
             if (form.puzzle) formData.append("puzzleText", form.puzzle);
             if (form.puzzleHint) formData.append("puzzleHint", form.puzzleHint);
             formData.append("answer", form.answer);
+            if (form.puzzleImageFile) formData.append("puzzleImage", form.puzzleImageFile);
 
             const res = await api.post("/location/create-location", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
@@ -109,9 +104,9 @@ export default function AdminLocationManagerScreen() {
                 view={view}
                 form={form}
                 setForm={setForm}
-                PUZZLE_TYPES={PUZZLE_TYPES}
                 saved={saved}
                 errorMsg={errorMsg}
+                editing={view === "edit"}
                 locationsLength={locations.length}
                 saveLocation={saveLocation}
                 setView={setView}
