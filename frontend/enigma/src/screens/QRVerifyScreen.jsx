@@ -101,7 +101,7 @@ export default function QRVerifyScreen() {
       }
     };
 
-    const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+    const config = { fps: 10, qrbox: { width: window.innerWidth <= 480 ? 180 : 220, height: window.innerWidth <= 480 ? 180 : 220 } };
 
     // Start immediately with the back camera ("environment")
     html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)

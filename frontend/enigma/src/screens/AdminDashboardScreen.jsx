@@ -80,10 +80,12 @@ export default function AdminDashboardScreen() {
             <TopBar
                 title="Organizer Dashboard"
                 right={
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent2)" }} />
-                        <span style={{ fontSize: 8, color: "var(--accent2)" }}>LIVE</span>
-                        <div style={{ display: "flex", gap: 6, marginLeft: 8 }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent2)" }} />
+                            <span style={{ fontSize: 8, color: "var(--accent2)" }}>LIVE</span>
+                        </div>
+                        <div style={{ display: "flex", gap: 6 }}>
                             <button
                                 className="btn-secondary"
                                 onClick={() => navigate("admin-teams")}
@@ -108,26 +110,26 @@ export default function AdminDashboardScreen() {
             ) : (
                 <div style={{ padding: "16px", maxWidth: 700, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
                     {/* Event Controls */}
-                    <div className="fade-up card" style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between", padding: "12px 16px" }}>
-                        <div style={{ fontSize: 12, fontFamily: "var(--font-display)", fontWeight: 700 }}>Event Controls</div>
-                        <div style={{ display: "flex", gap: 6 }}>
-                            <button className="btn-primary" style={{ padding: "5px 10px", fontSize: 10 }} onClick={() => handleEventAction("start-event")} disabled={!!eventAction}>
+                    <div className="fade-up card" style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between", padding: "12px 16px", flexWrap: "wrap" }}>
+                        <div style={{ fontSize: 12, fontFamily: "var(--font-display)", fontWeight: 700, marginBottom: window.innerWidth <= 480 ? 8 : 0 }}>Event Controls</div>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            <button className="btn-primary" style={{ padding: "5px 10px", fontSize: 10, width: "auto" }} onClick={() => handleEventAction("start-event")} disabled={!!eventAction}>
                                 {eventAction === "start-event" ? "..." : "▶ Start"}
                             </button>
-                            <button className="btn-danger" style={{ padding: "5px 10px", fontSize: 10 }} onClick={() => handleEventAction("stop-event")} disabled={!!eventAction}>
+                            <button className="btn-danger" style={{ padding: "5px 10px", fontSize: 10, width: "auto" }} onClick={() => handleEventAction("stop-event")} disabled={!!eventAction}>
                                 {eventAction === "stop-event" ? "..." : "⏹ Stop"}
                             </button>
-                            <button className="btn-secondary" style={{ padding: "5px 10px", fontSize: 10 }} onClick={() => handleEventAction("upcoming-event")} disabled={!!eventAction}>
+                            <button className="btn-secondary" style={{ padding: "5px 10px", fontSize: 10, width: "auto" }} onClick={() => handleEventAction("upcoming-event")} disabled={!!eventAction}>
                                 {eventAction === "upcoming-event" ? "..." : "🔄 Upcoming"}
                             </button>
-                            <button className="btn-secondary" style={{ padding: "5px 10px", fontSize: 10 }} onClick={handleLogout}>
+                            <button className="btn-secondary" style={{ padding: "5px 10px", fontSize: 10, width: "auto" }} onClick={handleLogout}>
                                 Logout
                             </button>
                         </div>
                     </div>
 
                     {/* Summary */}
-                    <div className="fade-up" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
+                    <div className="fade-up responsive-grid">
                         {[
                             ["Teams", data?.summary?.totalTeams || 0],
                             ["Active", (data?.summary?.totalTeams || 0) - (data?.summary?.finishedTeams || 0)],

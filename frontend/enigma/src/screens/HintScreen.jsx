@@ -78,8 +78,8 @@ export default function HintScreen() {
                             className="fade-up-2 card"
                             style={{
                                 display: "grid",
-                                gridTemplateColumns: "1fr 1fr",
-                                gap: 8,
+                                gridTemplateColumns: window.innerWidth <= 480 ? "1fr" : "1fr 1fr",
+                                gap: window.innerWidth <= 480 ? 12 : 8,
                                 textAlign: "center",
                                 padding: 16,
                             }}

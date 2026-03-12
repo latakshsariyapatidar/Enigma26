@@ -60,7 +60,7 @@ export default function DashboardScreen() {
                         border: "1px solid var(--border)",
                         position: "relative",
                         overflow: "hidden",
-                        padding: 24,
+                        padding: window.innerWidth <= 480 ? 18 : 24,
                     }}
                 >
                     <div
@@ -97,7 +97,7 @@ export default function DashboardScreen() {
                                 style={{
                                     fontFamily: "var(--font-display)",
                                     fontWeight: 800,
-                                    fontSize: 48,
+                                    fontSize: window.innerWidth <= 480 ? 36 : 48,
                                     color: "var(--accent)",
                                     lineHeight: 1.1,
                                 }}

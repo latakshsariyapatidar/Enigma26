@@ -92,6 +92,7 @@ export default function LoginScreen() {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
+        padding: "20px 16px",
       }}
     >
       <div className="noise" />
@@ -101,7 +102,6 @@ export default function LoginScreen() {
           zIndex: 1,
           width: "100%",
           maxWidth: 380,
-          padding: "0 20px",
         }}
       >
         {/* Logo */}
@@ -112,7 +112,7 @@ export default function LoginScreen() {
           <div
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: 45,
+              fontSize: window.innerWidth <= 480 ? 36 : 45,
               fontWeight: 800,
               letterSpacing: "-0.02em",
               lineHeight: 1,
@@ -136,14 +136,14 @@ export default function LoginScreen() {
         </div>
 
         {/* Card */}
-        <div className="card glow fade-up-2" style={{ padding: 28 }}>
+        <div className="card glow fade-up-2" style={{ padding: window.innerWidth <= 480 ? 20 : 28 }}>
           <div style={{ marginBottom: 20 }}>
             <div className="accent-line" style={{ marginBottom: 12 }} />
             <div
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 700,
-                fontSize: 16,
+                fontSize: window.innerWidth <= 480 ? 14 : 16,
               }}
             >
               Team Login

@@ -1,8 +1,8 @@
 const StatCard = ({ label, value, accent }) => (
-  <div className="card" style={{ textAlign: "center", padding: "14px 10px" }}>
+  <div className="card" style={{ textAlign: "center", padding: window.innerWidth <= 480 ? "12px 8px" : "14px 10px" }}>
     <div
       style={{
-        fontSize: 11,
+        fontSize: window.innerWidth <= 480 ? 10 : 11,
         color: "var(--muted)",
         fontFamily: "var(--font-mono)",
         letterSpacing: "0.1em",
@@ -16,7 +16,7 @@ const StatCard = ({ label, value, accent }) => (
       style={{
         fontFamily: "var(--font-display)",
         fontWeight: 800,
-        fontSize: 22,
+        fontSize: window.innerWidth <= 480 ? 18 : 22,
         color: accent || "var(--text)",
       }}
     >

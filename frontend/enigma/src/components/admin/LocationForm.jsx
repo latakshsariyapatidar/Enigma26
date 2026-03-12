@@ -39,71 +39,173 @@ export default function LocationForm({ view, form, setForm, saved, errorMsg, edi
                         <span style={{ color: "var(--accent2)" }}>03</span> Puzzle
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        <Field label="Puzzle Text" name="puzzle" placeholder="Enter the puzzle question (text only, or with image below)…" textarea form={form} setForm={setForm} />
+                        <Field label="Puzzle Text" name="puzzle" placeholder="Enter the puzzle question (text only, or with media below)…" textarea form={form} setForm={setForm} />
 
                         <div>
                             <div style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
-                                Puzzle Image <span style={{ fontSize: 10, opacity: 0.7 }}>(optional - shown if no text or alongside text)</span>
+                                Puzzle Media <span style={{ fontSize: 10, opacity: 0.7 }}>(optional - image or audio)</span>
                             </div>
-                            <div
-                                onDragOver={(e) => {
-                                    e.preventDefault();
-                                    e.currentTarget.style.borderColor = "var(--accent2)";
-                                    e.currentTarget.style.background = "rgba(94,232,160,0.05)";
-                                }}
-                                onDragLeave={(e) => {
-                                    e.currentTarget.style.borderColor = "var(--border)";
-                                    e.currentTarget.style.background = "transparent";
-                                }}
-                                onDrop={(e) => {
-                                    e.preventDefault();
-                                    e.currentTarget.style.borderColor = "var(--border)";
-                                    e.currentTarget.style.background = "transparent";
-                                    const file = e.dataTransfer.files[0];
-                                    if (file && file.type.startsWith("image/")) {
-                                        setForm((f) => ({ ...f, puzzleImageFile: file }));
-                                    } else {
-                                        alert("Please drop an image file (PNG, JPG, etc.)");
-                                    }
-                                }}
-                                style={{ border: "2px dashed var(--border)", borderRadius: 2, padding: "24px", textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}
-                            >
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) setForm((f) => ({ ...f, puzzleImageFile: file }));
+                            
+                            {/* Media Type Selector */}
+                            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                                <button
+                                    onClick={() => {
+                                        setForm((f) => ({ ...f, puzzleMediaType: "image", puzzleAudioFile: null }));
                                     }}
-                                    style={{ display: "none" }}
-                                    id="puzzleImageInput"
-                                />
-                                <label htmlFor="puzzleImageInput" style={{ cursor: "pointer", display: "block" }}>
-                                    {form.puzzleImageFile ? (
-                                        <>
-                                            <div style={{ fontSize: 28, marginBottom: 8 }}>🖼️</div>
-                                            <div style={{ fontSize: 12, color: "var(--accent2)", fontWeight: 600 }}>{form.puzzleImageFile.name}</div>
-                                            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{(form.puzzleImageFile.size / 1024).toFixed(1)} KB</div>
-                                            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, opacity: 0.6 }}>Click to change or drag new image</div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div style={{ fontSize: 28, marginBottom: 8 }}>📁</div>
-                                            <div style={{ fontSize: 12, color: "var(--muted)" }}>Click to upload or drag & drop</div>
-                                            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, opacity: 0.6 }}>PNG, JPG, GIF up to 5MB</div>
-                                        </>
-                                    )}
-                                </label>
+                                    style={{
+                                        flex: 1,
+                                        padding: "8px 12px",
+                                        fontSize: 11,
+                                        background: (form.puzzleMediaType === "image" || !form.puzzleMediaType) ? "var(--accent2)" : "var(--border)",
+                                        color: (form.puzzleMediaType === "image" || !form.puzzleMediaType) ? "white" : "var(--muted)",
+                                        border: "none",
+                                        borderRadius: 2,
+                                        cursor: "pointer",
+                                        fontWeight: (form.puzzleMediaType === "image" || !form.puzzleMediaType) ? 600 : 400,
+                                        transition: "all 0.2s"
+                                    }}
+                                >
+                                    🖼️ Image
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setForm((f) => ({ ...f, puzzleMediaType: "audio", puzzleImageFile: null }));
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        padding: "8px 12px",
+                                        fontSize: 11,
+                                        background: form.puzzleMediaType === "audio" ? "var(--accent2)" : "var(--border)",
+                                        color: form.puzzleMediaType === "audio" ? "white" : "var(--muted)",
+                                        border: "none",
+                                        borderRadius: 2,
+                                        cursor: "pointer",
+                                        fontWeight: form.puzzleMediaType === "audio" ? 600 : 400,
+                                        transition: "all 0.2s"
+                                    }}
+                                >
+                                    🎵 Audio
+                                </button>
                             </div>
-                            {form.puzzleImageFile && (
+
+                            {/* Image Upload */}
+                            {(form.puzzleMediaType === "image" || !form.puzzleMediaType) && (
+                                <div
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.currentTarget.style.borderColor = "var(--accent2)";
+                                        e.currentTarget.style.background = "rgba(94,232,160,0.05)";
+                                    }}
+                                    onDragLeave={(e) => {
+                                        e.currentTarget.style.borderColor = "var(--border)";
+                                        e.currentTarget.style.background = "transparent";
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        e.currentTarget.style.borderColor = "var(--border)";
+                                        e.currentTarget.style.background = "transparent";
+                                        const file = e.dataTransfer.files[0];
+                                        if (file && file.type.startsWith("image/")) {
+                                            setForm((f) => ({ ...f, puzzleImageFile: file }));
+                                        } else {
+                                            alert("Please drop an image file (PNG, JPG, etc.)");
+                                        }
+                                    }}
+                                    style={{ border: "2px dashed var(--border)", borderRadius: 2, padding: "24px", textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}
+                                >
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) setForm((f) => ({ ...f, puzzleImageFile: file }));
+                                        }}
+                                        style={{ display: "none" }}
+                                        id="puzzleImageInput"
+                                    />
+                                    <label htmlFor="puzzleImageInput" style={{ cursor: "pointer", display: "block" }}>
+                                        {form.puzzleImageFile ? (
+                                            <>
+                                                <div style={{ fontSize: 28, marginBottom: 8 }}>🖼️</div>
+                                                <div style={{ fontSize: 12, color: "var(--accent2)", fontWeight: 600 }}>{form.puzzleImageFile.name}</div>
+                                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{(form.puzzleImageFile.size / 1024).toFixed(1)} KB</div>
+                                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, opacity: 0.6 }}>Click to change or drag new image</div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div style={{ fontSize: 28, marginBottom: 8 }}>📁</div>
+                                                <div style={{ fontSize: 12, color: "var(--muted)" }}>Click to upload or drag & drop image</div>
+                                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, opacity: 0.6 }}>PNG, JPG, GIF up to 5MB</div>
+                                            </>
+                                        )}
+                                    </label>
+                                </div>
+                            )}
+
+                            {/* Audio Upload */}
+                            {form.puzzleMediaType === "audio" && (
+                                <div
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.currentTarget.style.borderColor = "var(--accent2)";
+                                        e.currentTarget.style.background = "rgba(94,232,160,0.05)";
+                                    }}
+                                    onDragLeave={(e) => {
+                                        e.currentTarget.style.borderColor = "var(--border)";
+                                        e.currentTarget.style.background = "transparent";
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        e.currentTarget.style.borderColor = "var(--border)";
+                                        e.currentTarget.style.background = "transparent";
+                                        const file = e.dataTransfer.files[0];
+                                        if (file && file.type.startsWith("audio/")) {
+                                            setForm((f) => ({ ...f, puzzleAudioFile: file }));
+                                        } else {
+                                            alert("Please drop an audio file (MP3, WAV, etc.)");
+                                        }
+                                    }}
+                                    style={{ border: "2px dashed var(--border)", borderRadius: 2, padding: "24px", textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}
+                                >
+                                    <input
+                                        type="file"
+                                        accept="audio/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) setForm((f) => ({ ...f, puzzleAudioFile: file }));
+                                        }}
+                                        style={{ display: "none" }}
+                                        id="puzzleAudioInput"
+                                    />
+                                    <label htmlFor="puzzleAudioInput" style={{ cursor: "pointer", display: "block" }}>
+                                        {form.puzzleAudioFile ? (
+                                            <>
+                                                <div style={{ fontSize: 28, marginBottom: 8 }}>🎵</div>
+                                                <div style={{ fontSize: 12, color: "var(--accent2)", fontWeight: 600 }}>{form.puzzleAudioFile.name}</div>
+                                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{(form.puzzleAudioFile.size / 1024).toFixed(1)} KB</div>
+                                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, opacity: 0.6 }}>Click to change or drag new audio</div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div style={{ fontSize: 28, marginBottom: 8 }}>📁</div>
+                                                <div style={{ fontSize: 12, color: "var(--muted)" }}>Click to upload or drag & drop audio</div>
+                                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, opacity: 0.6 }}>MP3, WAV, OGG up to 10MB</div>
+                                            </>
+                                        )}
+                                    </label>
+                                </div>
+                            )}
+
+                            {/* Remove Button */}
+                            {(form.puzzleImageFile || form.puzzleAudioFile) && (
                                 <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
                                     <button
-                                        onClick={() => setForm((f) => ({ ...f, puzzleImageFile: null }))}
+                                        onClick={() => setForm((f) => ({ ...f, puzzleImageFile: null, puzzleAudioFile: null }))}
                                         style={{ padding: "6px 12px", fontSize: 11, background: "var(--danger)", color: "white", border: "none", borderRadius: 2, cursor: "pointer" }}
                                     >
-                                        Remove Image
+                                        Remove {form.puzzleImageFile ? "Image" : "Audio"}
                                     </button>
-                                    <div style={{ fontSize: 11, color: "var(--muted)" }}>Image will be uploaded to Cloudinary on save</div>
+                                    <div style={{ fontSize: 11, color: "var(--muted)" }}>File will be uploaded to Cloudinary on save</div>
                                 </div>
                             )}
                         </div>
@@ -143,9 +245,9 @@ export default function LocationForm({ view, form, setForm, saved, errorMsg, edi
                         ⚠ {errorMsg}
                     </div>
                 )}
-                {(!form.name || !form.qrId || !form.clue || !form.answer || (!form.puzzle && !form.puzzleImageFile)) && (
+                {(!form.name || !form.qrId || !form.clue || !form.answer || (!form.puzzle && !form.puzzleImageFile && !form.puzzleAudioFile)) && (
                     <div style={{ fontSize: 12, color: "var(--danger)", padding: "10px 14px", border: "1px solid rgba(232,94,94,0.2)", background: "rgba(232,94,94,0.06)", borderRadius: 2 }}>
-                        ⚠ Fields marked with * are required. Puzzle must have either text or image (or both).
+                        ⚠ Fields marked with * are required. Puzzle must have text, image, or audio.
                     </div>
                 )}
 

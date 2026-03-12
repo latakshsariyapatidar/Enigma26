@@ -4,7 +4,7 @@ import LocationList from "../components/admin/LocationList";
 import api from "../utils/api";
 
 const EMPTY_LOC = {
-    name: "", qrId: "", clue: "", clueHint: "", puzzle: "", puzzleHint: "", answer: "", puzzleImageFile: null,
+    name: "", qrId: "", clue: "", clueHint: "", puzzle: "", puzzleHint: "", answer: "", puzzleImageFile: null, puzzleAudioFile: null, puzzleMediaType: "image",
 };
 
 // INIT_LOCATIONS removed - fetched from backend
@@ -51,8 +51,8 @@ export default function AdminLocationManagerScreen() {
     };
 
     const saveLocation = async () => {
-        if (!form.name || !form.clue || !form.answer || (!form.puzzle && !form.puzzleImageFile)) {
-            setErrorMsg("Please fill required fields. Puzzle must have text or image.");
+        if (!form.name || !form.clue || !form.answer || (!form.puzzle && !form.puzzleImageFile && !form.puzzleAudioFile)) {
+            setErrorMsg("Please fill required fields. Puzzle must have text, image, or audio.");
             return;
         }
 
@@ -65,6 +65,7 @@ export default function AdminLocationManagerScreen() {
             if (form.puzzleHint) formData.append("puzzleHint", form.puzzleHint);
             formData.append("answer", form.answer);
             if (form.puzzleImageFile) formData.append("puzzleImage", form.puzzleImageFile);
+            if (form.puzzleAudioFile) formData.append("puzzleAudio", form.puzzleAudioFile);
 
             const res = await api.post("/location/create-location", formData, {
                 headers: { "Content-Type": "multipart/form-data" },

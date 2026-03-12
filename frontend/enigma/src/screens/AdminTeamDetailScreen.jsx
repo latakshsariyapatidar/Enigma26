@@ -46,7 +46,7 @@ export default function AdminTeamDetailScreen() {
         <div className="screen" style={{ background: "var(--bg)" }}>
             <TopBar title={`Team: ${summary.teamName || summary.name || summary.teamId}`} back="admin-dashboard" />
             <div style={{ padding: "16px", maxWidth: 600, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
-                <div className="fade-up" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                <div className="fade-up" style={{ display: "grid", gridTemplateColumns: window.innerWidth <= 480 ? "1fr" : "1fr 1fr 1fr", gap: 10 }}>
                     <StatCard label="Round" value={`${summary.currentRound}/${route.length}`} />
                     <StatCard label="Score" value={`${summary.totalScore} pts`} accent="var(--accent)" />
                     <StatCard label="Time" value={summary.totalTime ? new Date(summary.totalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "N/A"} />

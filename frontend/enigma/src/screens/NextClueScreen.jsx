@@ -22,11 +22,12 @@ export default function NextClueScreen() {
                         position: "relative",
                         zIndex: 1,
                         textAlign: "center",
-                        padding: "0 24px",
+                        padding: "0 20px",
                         maxWidth: 400,
+                        width: "100%",
                     }}
                 >
-                    <div className="fade-up" style={{ fontSize: 64, marginBottom: 16 }}>
+                    <div className="fade-up" style={{ fontSize: window.innerWidth <= 480 ? 48 : 64, marginBottom: 16 }}>
                         🏆
                     </div>
                     <div
@@ -34,7 +35,7 @@ export default function NextClueScreen() {
                         style={{
                             fontFamily: "var(--font-display)",
                             fontWeight: 800,
-                            fontSize: 36,
+                            fontSize: window.innerWidth <= 480 ? 28 : 36,
                             color: "var(--accent)",
                             marginBottom: 12,
                         }}
@@ -58,7 +59,7 @@ export default function NextClueScreen() {
                             style={{
                                 fontFamily: "var(--font-display)",
                                 fontWeight: 800,
-                                fontSize: 32,
+                                fontSize: window.innerWidth <= 480 ? 28 : 32,
                                 color: "var(--accent)",
                             }}
                         >
@@ -112,13 +113,14 @@ export default function NextClueScreen() {
                         display: "flex",
                         justifyContent: "space-around",
                         textAlign: "center",
-                        padding: 20,
+                        padding: window.innerWidth <= 480 ? 16 : 20,
+                        gap: window.innerWidth <= 480 ? 12 : 0,
                     }}
                 >
-                    <div>
+                    <div style={{ flex: 1 }}>
                         <div
                             style={{
-                                fontSize: 11,
+                                fontSize: window.innerWidth <= 480 ? 10 : 11,
                                 color: "var(--muted)",
                                 textTransform: "uppercase",
                                 letterSpacing: "0.1em",
@@ -130,7 +132,7 @@ export default function NextClueScreen() {
                             style={{
                                 fontFamily: "var(--font-display)",
                                 fontWeight: 800,
-                                fontSize: 28,
+                                fontSize: window.innerWidth <= 480 ? 22 : 28,
                                 color: pointsEarned >= 0 ? "var(--accent2)" : "var(--danger)",
                                 marginTop: 4,
                             }}
@@ -138,11 +140,11 @@ export default function NextClueScreen() {
                             {pointsEarned >= 0 ? `+${pointsEarned}` : pointsEarned}
                         </div>
                     </div>
-                    <div style={{ width: 1, background: "var(--border)" }} />
-                    <div>
+                    {window.innerWidth > 480 && <div style={{ width: 1, background: "var(--border)" }} />}
+                    <div style={{ flex: 1 }}>
                         <div
                             style={{
-                                fontSize: 11,
+                                fontSize: window.innerWidth <= 480 ? 10 : 11,
                                 color: "var(--muted)",
                                 textTransform: "uppercase",
                                 letterSpacing: "0.1em",
@@ -154,7 +156,7 @@ export default function NextClueScreen() {
                             style={{
                                 fontFamily: "var(--font-display)",
                                 fontWeight: 800,
-                                fontSize: 28,
+                                fontSize: window.innerWidth <= 480 ? 22 : 28,
                                 color: "var(--accent)",
                                 marginTop: 4,
                             }}
@@ -162,11 +164,11 @@ export default function NextClueScreen() {
                             {team.score}
                         </div>
                     </div>
-                    <div style={{ width: 1, background: "var(--border)" }} />
-                    <div>
+                    {window.innerWidth > 480 && <div style={{ width: 1, background: "var(--border)" }} />}
+                    <div style={{ flex: 1 }}>
                         <div
                             style={{
-                                fontSize: 11,
+                                fontSize: window.innerWidth <= 480 ? 10 : 11,
                                 color: "var(--muted)",
                                 textTransform: "uppercase",
                                 letterSpacing: "0.1em",
@@ -178,7 +180,7 @@ export default function NextClueScreen() {
                             style={{
                                 fontFamily: "var(--font-display)",
                                 fontWeight: 800,
-                                fontSize: 28,
+                                fontSize: window.innerWidth <= 480 ? 22 : 28,
                                 color: "var(--text)",
                                 marginTop: 4,
                             }}

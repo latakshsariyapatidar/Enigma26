@@ -136,6 +136,74 @@ const FontLink = () => (
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      body { font-size: 14px; }
+      .card { padding: 16px; border-radius: 3px; }
+      input, textarea { font-size: 13px; padding: 9px 12px; }
+      .btn-primary, .btn-secondary, .btn-danger {
+        font-size: 12px;
+        padding: 10px 18px;
+        letter-spacing: 0.06em;
+      }
+      .tag { font-size: 10px; padding: 2px 8px; }
+    }
+
+    @media (max-width: 480px) {
+      body { font-size: 13px; }
+      .card { padding: 14px; border-radius: 2px; }
+      input, textarea { font-size: 12px; padding: 8px 10px; }
+      .btn-primary, .btn-secondary, .btn-danger {
+        font-size: 11px;
+        padding: 9px 16px;
+      }
+      .tag { font-size: 9px; padding: 2px 6px; }
+    }
+
+    /* Utility Classes for Responsive Layouts */
+    .responsive-grid {
+      display: grid;
+      gap: 10px;
+    }
+    @media (min-width: 769px) {
+      .responsive-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .responsive-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .responsive-grid { grid-template-columns: 1fr; gap: 8px; }
+    }
+
+    .responsive-container {
+      padding: 16px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+      .responsive-container { padding: 12px; max-width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .responsive-container { padding: 10px; }
+    }
+
+    /* Responsive Image Handling */
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Prevent horizontal overflow */
+    * {
+      max-width: 100%;
+    }
+
+    html, body, #root {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
   `}</style>
 );
 

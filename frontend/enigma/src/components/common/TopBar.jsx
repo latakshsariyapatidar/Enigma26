@@ -7,16 +7,18 @@ const TopBar = ({ title, right, back, onBack }) => {
       style={{
         background: "var(--surface)",
         borderBottom: "1px solid var(--border)",
-        padding: "14px 20px",
+        padding: "14px 16px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         position: "sticky",
         top: 0,
         zIndex: 10,
+        gap: 8,
+        flexWrap: "wrap",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
         {back && (
           <button
             onClick={onBack || (() => navigate(back))}
@@ -29,6 +31,7 @@ const TopBar = ({ title, right, back, onBack }) => {
               fontSize: 10,
               fontFamily: "var(--font-mono)",
               borderRadius: 2,
+              flexShrink: 0,
             }}
           >
             ← back
@@ -41,12 +44,17 @@ const TopBar = ({ title, right, back, onBack }) => {
             fontSize: 10,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
           {title}
         </span>
       </div>
-      {right}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+        {right}
+      </div>
     </div>
   );
 };
