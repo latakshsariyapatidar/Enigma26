@@ -126,7 +126,9 @@ const checkPuzzleAnswer = asyncHandler(async (req, res, next) => {
   }
   //answer was correct
   if (teamProgress.currentRound === 0) {
-    // Base camp puzzle solved: don't increment round, just move to first location
+    // Base camp puzzle solved: award +10, carry score to round 1, move to first location
+    current.score += 10;
+    teamProgress.assignedLocations[0].score += current.score;
     teamProgress.currentLocation = teamProgress.assignedLocations[0].location;
     await teamProgress.save();
     return res.status(200).json(
