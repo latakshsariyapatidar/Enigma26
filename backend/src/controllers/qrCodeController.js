@@ -108,7 +108,7 @@ const checkPuzzleAnswer = asyncHandler(async (req, res, next) => {
   }
 
   current.attempts += 1;
-  if (answer.toLowerCase() !== location.puzzle.answer.toLowerCase()) {
+  if (answer.trim().toLowerCase() !== location.puzzle.answer.trim().toLowerCase()) {
     await teamProgress.save();
     return next(new ApiError(400, "Incorrect answer"));
   }
