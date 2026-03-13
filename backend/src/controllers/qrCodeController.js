@@ -59,22 +59,10 @@ const checkQrLocation = asyncHandler(async (req, res, next) => {
     teamProgress.assignedLocations.find(
       (location) => location.location.toString() === locId
     ).qrcodeseen = true;
-    
-    // Increment round on QR scan
-    teamProgress.currentRound += 1;
+
+    // +10 for reaching the correct location (round does NOT increment here)
     teamProgress.assignedLocations[teamProgress.currentRound - 1].score += 10;
-    
-    // Check if this is the final QR scan (returning to base camp) — game complete
-    if (teamProgress.currentRound >= numberOfRounds) {
-      teamProgress.assignedLocations[teamProgress.currentRound - 1].status = "completed";
-      teamProgress.assignedLocations[teamProgress.currentRound - 1].completedAt = new Date();
-      teamProgress.currentRound = numberOfRounds + 1;
-      teamProgress.currentLocation = null;
-      teamProgress.CompletedIn = new Date();
-      await teamProgress.save();
-      return res.status(200).json(new ApiResponse(200, { gameCompleted: true }, "Hunt Complete!"));
-    }
-    
+
     await teamProgress.save();
   }
 
@@ -114,11 +102,11 @@ const checkPuzzleAnswer = asyncHandler(async (req, res, next) => {
     // They shouldn't be able to submit a puzzle answer for it.
     return next(new ApiError(400, "This round is already completed"));
   }
-  
+
   if (teamProgress.currentRound > numberOfRounds) {
-     return next(new ApiError(400, "Event is already completed"));
+    return next(new ApiError(400, "Event is already completed"));
   }
-  
+
   current.attempts += 1;
   if (answer.toLowerCase() !== location.puzzle.answer.toLowerCase()) {
     await teamProgress.save();
@@ -126,8 +114,11 @@ const checkPuzzleAnswer = asyncHandler(async (req, res, next) => {
   }
   //answer was correct
   if (teamProgress.currentRound === 0) {
-    // Base camp puzzle solved: don't increment round, just move to first location
+    // Base camp puzzle solved: +10 for solving, increment round and move to first location
+    current.score += 10;
+    teamProgress.currentRound = 1;
     teamProgress.currentLocation = teamProgress.assignedLocations[0].location;
+    teamProgress.assignedLocations[0].score += current.score;
     await teamProgress.save();
     return res.status(200).json(
       new ApiResponse(200, {}, "Correct answer you can proceed to the first location")
@@ -149,11 +140,13 @@ const checkPuzzleAnswer = asyncHandler(async (req, res, next) => {
     teamProgress.currentLocation = null;
     teamProgress.CompletedIn = new Date();
   } else {
-    // Move to next location (don't increment round, QR scan will do that)
+    // Carry score to next round and move to next location
     teamProgress.assignedLocations[teamProgress.currentRound].score +=
       teamProgress.assignedLocations[teamProgress.currentRound - 1].score;
     teamProgress.currentLocation =
       teamProgress.assignedLocations[teamProgress.currentRound].location;
+    // Increment round after puzzle solve
+    teamProgress.currentRound += 1;
   }
   await teamProgress.save();
   return res
@@ -182,11 +175,11 @@ const getPuzzleHint = asyncHandler(async (req, res, next) => {
   if (!current) {
     return next(new ApiError(400, "Invalid round state"));
   }
-  
+
   if (teamProgress.currentRound > numberOfRounds) {
-     return next(new ApiError(400, "Event is already completed"));
+    return next(new ApiError(400, "Event is already completed"));
   }
-  
+
   if (!current.puzzlehintUsed) {
     current.puzzlehintUsed = true;
     current.score -= 5;
@@ -223,11 +216,12 @@ const giveUpPuzzle = asyncHandler(async (req, res, next) => {
     return next(new ApiError(400, "This round is already completed"));
   }
   if (teamProgress.currentRound > numberOfRounds) {
-     return next(new ApiError(400, "Event is already completed"));
+    return next(new ApiError(400, "Event is already completed"));
   }
   if (teamProgress.currentRound === 0) {
-    // Base camp give up: don't increment round, just move to first location
+    // Base camp give up: increment round and move to first location
     current.score -= 5;
+    teamProgress.currentRound = 1;
     teamProgress.currentLocation = teamProgress.assignedLocations[0].location;
     teamProgress.assignedLocations[0].score += current.score;
     await teamProgress.save();
@@ -239,22 +233,24 @@ const giveUpPuzzle = asyncHandler(async (req, res, next) => {
       )
     );
   }
-  
+
   current.status = "completed";
   current.completedAt = new Date();
   current.score -= 5;
-  
+
   if (teamProgress.currentRound >= numberOfRounds) {
     // Last puzzle given up — game complete
     teamProgress.currentRound += 1;
     teamProgress.currentLocation = null;
     teamProgress.CompletedIn = new Date();
   } else {
-    // Move to next location (don't increment round, QR scan will do that)
+    // Carry score to next round and move to next location
     teamProgress.assignedLocations[teamProgress.currentRound].score +=
       teamProgress.assignedLocations[teamProgress.currentRound - 1].score;
     teamProgress.currentLocation =
       teamProgress.assignedLocations[teamProgress.currentRound].location;
+    // Increment round after giving up
+    teamProgress.currentRound += 1;
   }
   await teamProgress.save();
   return res
