@@ -48,10 +48,12 @@ export default function PuzzleScreen() {
     const submit = async () => {
         if (!answer.trim() || submitting || !currentLocationId) return;
         setSubmitting(true);
+        const wasBaseCampRound = team.round === 0;
         try {
             setPrevScore(team.score);
             await api.post(`/qrCode/checkPuzzleAnswer/${currentLocationId}`, { answer: answer.trim() });
             setResult("correct");
+            setPuzzleData(null);
 
             // Re-fetch progress to update team global state
             try {
@@ -73,7 +75,11 @@ export default function PuzzleScreen() {
                     }
                 }
             } catch (err) {
-                console.error("Failed to update progress globally after correct answer");
+                console.error("Failed to update progress globally after correct answer", err);
+                // Fallback so base-camp solve still reflects score/round in UI.
+                if (wasBaseCampRound) {
+                    setTeam((t) => ({ ...t, score: t.score + 10, round: 1 }));
+                }
             }
         } catch (err) {
             setResult("wrong");
@@ -85,12 +91,14 @@ export default function PuzzleScreen() {
 
     const handleGiveUp = async () => {
         if (!currentLocationId) return;
+        const wasBaseCampRound = team.round === 0;
         try {
             setPrevScore(team.score);
             const res = await api.post(`/qrCode/giveUpPuzzle/${currentLocationId}`);
             const puzzleAnswer = res.data?.data?.puzzleAnswer || "Unknown";
             setGaveUpAnswer(puzzleAnswer);
             setGaveUp(true);
+            setPuzzleData(null);
             // Re-fetch progress
             try {
                 const progressRes = await api.get("/teamProgress/progress");
@@ -110,7 +118,11 @@ export default function PuzzleScreen() {
                         setTeam((t) => ({ ...t, score: pd.score }));
                     }
                 }
-            } catch (e) { /* ignore */ }
+            } catch (e) {
+                if (wasBaseCampRound) {
+                    setTeam((t) => ({ ...t, score: t.score - 5, round: 1 }));
+                }
+            }
         } catch (err) {
             console.error("Give up failed", err);
             alert(err.response?.data?.message || "Give up failed");

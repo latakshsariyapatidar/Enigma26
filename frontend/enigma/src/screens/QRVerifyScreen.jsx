@@ -30,7 +30,15 @@ export default function QRVerifyScreen() {
       setErrorMsg("");
 
       // The QR code could be just the MongoDB LocId or a full URL.
-      const scannedLocId = decodedText.trim();
+      const rawScan = decodedText.trim();
+      let scannedLocId = rawScan;
+      try {
+        const url = new URL(rawScan);
+        const parts = url.pathname.split("/").filter(Boolean);
+        scannedLocId = parts[parts.length - 1] || rawScan;
+      } catch {
+        // Non-URL payload, keep as-is.
+      }
 
       try {
         const res = await api.get(`/qrCode/checkQrLocation/${scannedLocId}`);
