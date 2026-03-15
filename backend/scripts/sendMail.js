@@ -25,11 +25,9 @@ Hello ,
 
 Your account has been created.
 
-Role: ${role},
-Team Id:${name},
+Team Id:${name}
 Password: ${password}
 
-Please login and change your password.
 
 Regards,
 Enigma Team

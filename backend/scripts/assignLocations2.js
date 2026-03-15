@@ -33,42 +33,42 @@ dotenv.config();
 const NUM_BUCKETS = numberOfRounds; // 8
 
 // ── Predefined bucket names (matched via trim + lowercase) ──────────────
-// const BUCKET_NAMES = [
-//   // Bucket 1
-//   ["temporary ground", "main gate", "kv school", "helipad"],
-//   // Bucket 2
-//   ["H1", "mess"],
-//   // Bucket 3
-//   ["KRDC"],
-//   // Bucket 4
-//   ["Indoor Common Facility", "wellness", "amenities"],
-//   // Bucket 5
-//   ["CIF", "a1", "a2"],
-//   // Bucket 6
-//   ["Swimming Pool"],
-//   // Bucket 7
-//   ["ESS-1", "ESS-2", "ESS-3"],
-//   // Bucket 8
-//   ["F600"],
-// ];
 const BUCKET_NAMES = [
   // Bucket 1
-  ["helipad"],
+  ["temporary ground", "maingate", "KV school", "helipad"],
   // Bucket 2
-  ["H1"],
+  ["H1", "Mess"],
   // Bucket 3
   ["KRDC"],
   // Bucket 4
-  ["Indoor Common Facility"],
+  ["Indoor Common Facilities", "Wellness", "Common Ammenities"],
   // Bucket 5
-  ["CIF"],
+  ["CIF", "A1", "A2"],
   // Bucket 6
   ["Swimming Pool"],
   // Bucket 7
-  ["ESS-1"],
+  ["ESS-1", "ESS2", "ESS3"],
   // Bucket 8
   ["F600"],
 ];
+// const BUCKET_NAMES = [
+//   // Bucket 1
+//   ["helipad"],
+//   // Bucket 2
+//   ["H1"],
+//   // Bucket 3
+//   ["KRDC"],
+//   // Bucket 4
+//   ["Indoor Common Facility"],
+//   // Bucket 5
+//   ["CIF"],
+//   // Bucket 6
+//   ["Swimming Pool"],
+//   // Bucket 7
+//   ["ESS-1"],
+//   // Bucket 8
+//   ["F600"],
+// ];
 
 // Fisher-Yates shuffle
 const shuffle = (arr) => {
@@ -88,7 +88,7 @@ const run = async () => {
     console.log("Connected to MongoDB");
 
     // ── 1. Fetch teams & locations ──────────────────────────────────────
-    const teams = await Team.find({ role: "participant" });
+    const teams = await Team.find({ name: "hehe i win" });
     const allLocations = await Location.find();
 
     // Build a lookup: normalized name → location doc
@@ -231,10 +231,11 @@ const run = async () => {
       // ── 5d. Create TeamProgress ───────────────────────────────────────
       await TeamProgress.create({
         teamId: team._id,
-        currentRound: 0,
+        currentRound: 9,
         currentLocation: assignedIds[assignedIds.length - 1],
         assignedLocations: assignedIds.map((id) => ({
           location: id,
+          score: 1000,
         })),
       });
 
